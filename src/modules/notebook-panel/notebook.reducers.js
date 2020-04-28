@@ -1,5 +1,4 @@
 import {notebookReducers} from './notebook.constants';
-import {isEmpty} from '../../shared/Helpers';
 
 const initialState = {
   visibleNotebookPagesStack: [],
@@ -10,17 +9,14 @@ const initialState = {
 export const notebookReducer = (state = initialState, action) => {
   switch (action.type) {
     case notebookReducers.SET_NOTEBOOK_PAGE_VISIBLE: {
-      let visibleNotebookPagesStack = state.visibleNotebookPagesStack;
-      if (isEmpty(visibleNotebookPagesStack)) visibleNotebookPagesStack = [action.page];
-      else if (visibleNotebookPagesStack.length > 1 && state.visibleNotebookPagesStack.slice(-2)[0] === action.page) {
-        visibleNotebookPagesStack = state.visibleNotebookPagesStack.slice(0, -1);
+      let visibleNotebookPagesStackTemp = [];
+      if (state.visibleNotebookPagesStack.length > 1 && state.visibleNotebookPagesStack.slice(-2)[0] === action.page) {
+        visibleNotebookPagesStackTemp = state.visibleNotebookPagesStack.slice(0, -1);
       }
-      else if (state.visibleNotebookPagesStack.slice(-1)[0] !== action.page) {
-        visibleNotebookPagesStack = [...visibleNotebookPagesStack, action.page];
-      }
+      else visibleNotebookPagesStackTemp = [...state.visibleNotebookPagesStack, action.page];
       return {
         ...state,
-        visibleNotebookPagesStack: visibleNotebookPagesStack,
+        visibleNotebookPagesStack: visibleNotebookPagesStackTemp,
       };
     }
     case notebookReducers.SET_NOTEBOOK_PAGE_VISIBLE_TO_PREV: {

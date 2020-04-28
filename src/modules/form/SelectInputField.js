@@ -20,6 +20,8 @@ const SelectInputField = (props) => {
     inputAndroid: styles.selectFieldValue,
   };
 
+  //if (props.name === 'quality') console.log('props', props);
+
   return (
     <View style={stylesCommon.rowContainer}>
       <Text style={styles.fieldLabel}>{props.label}</Text>

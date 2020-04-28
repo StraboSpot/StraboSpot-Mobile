@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Alert, Text, View} from 'react-native';
-import {Picker} from '@react-native-community/picker';
+import {RNPickerSelect} from 'react-native-picker-select';
 import styles from './customMaps.styles';
 import {ListItem} from 'react-native-elements';
 import * as SharedUI from '../../../shared/ui/index';
@@ -353,20 +353,14 @@ class CustomMapsMenu extends Component {
           <View style={{alignItems: 'center'}}>
             <Text style={styles.headerText}>Select Map Type:</Text>
           </View>
-          <Picker
+          <RNPickerSelect
             selectedValue=''
             onValueChange={(mapSelectorType) => this.updateForm(mapSelectorType)}
-            style={styles.picker}>
-            {
-              this.mapTypes.map(function (i) {
-                return <Picker.Item
-                  label={i}
-                  value={i}
-                  key={i}
-                />;
-              })
-            }
-          </Picker>
+            style={styles.picker}
+            items={this.mapTypes.map(i => {
+              return {label: i.toString(), value: i, key: i};
+            })}>
+          </RNPickerSelect>
         </View>
         }
         {this.state.showForm &&

@@ -28,23 +28,15 @@ import styles from './measurements.styles';
 import stylesCommon from '../../shared/common.styles';
 
 const MeasurementDetailPage = (props) => {
+  console.log('In MeasurementDetailPage. props:', props);
   const [useForm] = useFormHook();
   const [formName, setFormName] = useState([]);
-
-  const featureTypes = {
-    PLANAR: 'Planar Feature',
-    TABULAR: 'Tabular Zone',
-  };
-
-  // Set type switch to Planar Feature (0) or Tabular Feature (1)
-  const getTypeSwitchIndex = (type) => {
-    return type === 'planar_orientation' ? 0 : 1;
-  };
-
-  const [selectedFeatureTypeIndex, setFeatureTypeIndex] = useState(getTypeSwitchIndex(props.selectedMeasurements &&
-    props.selectedMeasurements[0] && props.selectedMeasurements[0].type));
-  const [selectedAssociatedMeasurementId, setSelectedAssociatedMeasurementId] = useState(props.selectedMeasurements &&
-    props.selectedMeasurements[0] && props.selectedMeasurements[0].id);
+  /*  const [formName, setFormName] = useState(
+   [props.selectedMeasurements.length === 1 ? 'measurement' : 'measurement_bulk', props.selectedMeasurements[0].type]);*/
+  /*const [selectedMeasurement, setSelectedMeasurement] = useState(props.selectedMeasurements &&
+   props.selectedMeasurements[0]);*/
+  const [selectedAssociatedMeasurement, setSelectedAssociatedMeasurement] = useState(props.selectedMeasurements &&
+    props.selectedMeasurements[0]);
   const form = useRef(null);
 
   useEffect(() => {
@@ -88,11 +80,10 @@ const MeasurementDetailPage = (props) => {
 
   // If the measurement clicked is not equal to one not being displayed already then switch to that feature
   const switchAssociatedMeasurement = (measurement) => {
-    if (measurement.id !== selectedAssociatedMeasurementId) {
-      props.setSelectedAttributes([measurement]);
-      setSelectedAssociatedMeasurementId(measurement.id);
-      setFeatureTypeIndex(getTypeSwitchIndex(measurement.type));
+    if (measurement.id !== selectedAssociatedMeasurement.id) {
+      setSelectedAssociatedMeasurement(measurement);
       setFormName(['measurement', measurement.type]);
+      // form.current.resetForm();
     }
   };
 
@@ -126,7 +117,7 @@ const MeasurementDetailPage = (props) => {
     const modifiedMeasurement = {...form.current.values, type: type};
     if (props.selectedMeasurements.length === 1) props.setSelectedAttributes([modifiedMeasurement]);
     else props.setSelectedAttributes([modifiedMeasurement, ...props.selectedMeasurements.slice(1)]);
-    type === 'planar_orientation' ? setFeatureTypeIndex(0) : setFeatureTypeIndex(1);
+    //setSelectedMeasurement(modifiedMeasurement);
     setFormName(['measurement', modifiedMeasurement.type]);
   };
 
@@ -135,8 +126,8 @@ const MeasurementDetailPage = (props) => {
     return (
       <ButtonGroup
         onPress={i => onSwitchFeatureType(i)}
-        selectedIndex={selectedFeatureTypeIndex}
-        buttons={Object.values(featureTypes)}
+        selectedIndex={props.selectedMeasurements[0].type === 'planar_orientation' ? 0 : 1}
+        buttons={['Planar Feature', 'Tabular Zone']}
         containerStyle={styles.measurementDetailSwitches}
         selectedButtonStyle={{backgroundColor: themes.PRIMARY_ACCENT_COLOR}}
         textStyle={{color: themes.PRIMARY_ACCENT_COLOR}}
@@ -158,7 +149,7 @@ const MeasurementDetailPage = (props) => {
             onSubmit={onSubmitForm}
             validate={(values) => useForm.validateForm({formName: formName, values: values})}
             component={(formProps) => Form({formName: formName, ...formProps})}
-            initialValues={props.selectedMeasurements[0]}
+            initialValues={selectedAssociatedMeasurement}
             validateOnChange={false}
             enableReinitialize={true}
           />
@@ -179,27 +170,38 @@ const MeasurementDetailPage = (props) => {
   };
 
   const renderAssociatedMeasurements = () => {
-    const selectedOrientation = getSelectedOrientationInfo(props.selectedMeasurements[0]);
+    //const selectedOrientation = getSelectedOrientationInfo(props.selectedMeasurements[0]);
     return (
       <View>
-        {selectedOrientation.associatedOrientations &&
+        {props.selectedMeasurements && props.selectedMeasurements[0] &&
+        props.selectedMeasurements[0].associated_orientation &&
+        <FlatList data={[props.selectedMeasurements[0]]}
+                  renderItem={item => <MeasurementItem item={item}
+                                                       selectedIds={[selectedAssociatedMeasurement.id]}
+                                                       isAssociatedItem={false}
+                                                       isAssociatedList={true}
+                                                       onPress={() => onSwitchAssociatedMeasurement(item.item)}/>}
+                  keyExtractor={(item, index) => index.toString()}/>}
+        {props.selectedMeasurements && props.selectedMeasurements[0] &&
+        props.selectedMeasurements[0].associated_orientation &&
         <FlatList
-          data={selectedOrientation.associatedOrientations}
-          renderItem={item => <MeasurementItem item={item}
-                                               selectedIds={[selectedAssociatedMeasurementId]}
-                                               isAssociatedItem={item.item.id !== selectedOrientation.data.id}
-                                               isAssociatedList={true}
-                                               onPress={() => onSwitchAssociatedMeasurement(item.item)}/>}
-          keyExtractor={(item, index) => index.toString()}
+          data={props.selectedMeasurements[0].associated_orientation}
+          renderItem={item2 => <MeasurementItem item={item2}
+                                                selectedIds={[selectedAssociatedMeasurement.id]}
+                                                isAssociatedItem={true}
+                                                isAssociatedList={true}
+                                                onPress={() => onSwitchAssociatedMeasurement(item2.item)}/>}
+          keyExtractor={(item2, index) => index.toString()}
         />}
-        {selectedOrientation.data.type === 'linear_orientation' &&
+        {selectedAssociatedMeasurement.type === 'linear_orientation' &&
         <Button
           titleStyle={styles.buttonText}
           title={'+ Add Associated Plane'}
           type={'clear'}
           onPress={() => addAssociatedMeasurement('planar_orientation')}
         />}
-        {(selectedOrientation.data.type === 'planar_orientation' || selectedOrientation.data.type === 'tabular_orientation') &&
+        {(selectedAssociatedMeasurement.type === 'planar_orientation' ||
+          selectedAssociatedMeasurement.type === 'tabular_orientation') &&
         <Button
           titleStyle={styles.buttonText}
           title={'+ Add Associated Line'}
@@ -264,7 +266,7 @@ const MeasurementDetailPage = (props) => {
     orientations[selectedOrientation.i].associated_orientation.push(newAssociatedMeasurement);
     props.onSpotEdit('orientation_data', orientations);
     props.setSelectedAttributes([newAssociatedMeasurement]);
-    setSelectedAssociatedMeasurementId(newId);
+    setSelectedAssociatedMeasurement(newAssociatedMeasurement);
   };
 
   // Get the data for the selected measurement, and whether it's a main measurement or an associated measurement.
@@ -305,14 +307,30 @@ const MeasurementDetailPage = (props) => {
       }
       else {
         console.log('Saving form data to Spot ...');
-        let allMeasurements = props.spot.properties.orientation_data;
+        let allMeasurementsCopy = JSON.parse(JSON.stringify(props.spot.properties.orientation_data));
         // Single feature editing
         if (props.selectedMeasurements.length === 1) {
-          const selectedOrientation = getSelectedOrientationInfo(props.selectedMeasurements[0]);
-          if (!isEmpty(selectedOrientation.i) && !isEmpty(selectedOrientation.iAssociated)) {
-            allMeasurements[selectedOrientation.i].associated_orientation[selectedOrientation.iAssociated] = form.current.values;
-          }
-          else allMeasurements[selectedOrientation.i] = form.current.values;
+          /* const selectedOrientation = getSelectedOrientationInfo(props.selectedMeasurements[0]);
+           if (!isEmpty(selectedOrientation.i) && !isEmpty(selectedOrientation.iAssociated)) {
+           allMeasurements[selectedOrientation.i].associated_orientation[selectedOrientation.iAssociated] = form.current.values;
+           }
+           else allMeasurements[selectedOrientation.i] = form.current.values;*/
+
+          allMeasurementsCopy.map((measurement, i) => {
+            if (measurement.id === selectedAssociatedMeasurement.id) {
+              props.spot.properties.orientation_data[i] = form.current.values;
+              // Note: Need to update selectedMeasurements with saved value but prob can't do it this way
+              props.selectedMeasurements[0] = props.spot.properties.orientation_data[i];
+            }
+            else if (measurement.associated_orientation) {
+              measurement.associated_orientation.map((associatedMeasurement, j) => {
+                if (associatedMeasurement.id === selectedAssociatedMeasurement.id) {
+                  props.spot.properties.orientation_data[i].associated_orientation[j] = form.current.values;
+                  props.selectedMeasurements[0] = props.spot.properties.orientation_data[i];
+                }
+              });
+            }
+          });
         }
         // Bulk feature editing
         else {
@@ -322,12 +340,14 @@ const MeasurementDetailPage = (props) => {
           props.selectedMeasurements.map(spotFeature => {
             const selectedOrientation = getSelectedOrientationInfo(spotFeature);
             if (!isEmpty(selectedOrientation.i) && !isEmpty(selectedOrientation.iAssociated)) {
-              allMeasurements[selectedOrientation.i].associated_orientation[selectedOrientation.iAssociated] = {...allMeasurements[selectedOrientation.i].associated_orientation[selectedOrientation.iAssociated], ...formValues};
+              props.spot.properties.orientation_data[selectedOrientation.i].associated_orientation[selectedOrientation.iAssociated] = {...allMeasurementsCopy[selectedOrientation.i].associated_orientation[selectedOrientation.iAssociated], ...formValues};
+              // Note: Need to update selectedMeasurements with saved value but prob can't do it this way
+              //props.selectedMeasurements = props.spot.properties.orientation_data[i];
             }
-            else allMeasurements[selectedOrientation.i] = {...allMeasurements[selectedOrientation.i], ...formValues};
+            else props.spot.properties.orientation_data[selectedOrientation.i] = {...allMeasurementsCopy[selectedOrientation.i], ...formValues};
           });
         }
-        props.onSpotEdit('orientation_data', allMeasurements);
+        props.onSpotEdit('orientation_data', props.spot.properties.orientation_data);
         return Promise.resolve();
       }
     }, (e) => {
@@ -353,12 +373,16 @@ const MeasurementDetailPage = (props) => {
       {props.selectedMeasurements && props.selectedMeasurements[0] &&
       <View style={styles.measurementsContentContainer}>
         {renderCancelSaveButtons()}
-        {props.selectedMeasurements.length === 1 ?
-          renderAssociatedMeasurements() :
-          renderMultiMeasurementsBar()}
-        {(props.selectedMeasurements[0].type === 'planar_orientation' || props.selectedMeasurements[0].type === 'tabular_orientation') && renderSwitches()}
         <ScrollView>
-          {!isEmpty(formName) && renderFormFields()}
+          {props.selectedMeasurements.length === 1 ?
+            renderAssociatedMeasurements() :
+            renderMultiMeasurementsBar()}
+          {(props.selectedMeasurements[0].type === 'planar_orientation' ||
+            props.selectedMeasurements[0].type === 'tabular_orientation') &&
+          renderSwitches()}
+          <View>
+            {!isEmpty(formName) && renderFormFields()}
+          </View>
         </ScrollView>
       </View>}
     </React.Fragment>

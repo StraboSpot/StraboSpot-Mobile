@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Text, StyleSheet, View} from 'react-native';
-import {Picker} from '@react-native-community/picker';
+import RNPickerSelect from 'react-native-picker-select';
 import {Button, Header, Icon} from 'react-native-elements';
 import {Platform} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -326,7 +326,7 @@ class SaveMapModal extends Component {
 
     //console.log("PROPS: ", this.props);
     //console.log("Tile Dir: ", this.tileCacheDirectory);
-
+    console.log(this.zoomLevels);
     return (
       <View style={styles.modalContainer}>
         <Header
@@ -341,7 +341,7 @@ class SaveMapModal extends Component {
                   size={40}
                 />
               }
-              type= {'clear'}
+              type={'clear'}
               onPress={this.props.close}
             />
           }/>
@@ -358,20 +358,14 @@ class SaveMapModal extends Component {
         }
 
         {this.state.showMainMenu &&
-        <Picker
+        <RNPickerSelect
           selectedValue={this.state.downloadZoom}
           onValueChange={(itemValue) => this.updatePicker(itemValue)}
-          style={styles.picker}>
-          {
-            this.zoomLevels.map(function (i) {
-              return <Picker.Item
-                label={i.toString()}
-                value={i}
-                key={i}
-              />;
-            })
-          }
-        </Picker>
+          style={styles.picker}
+          items={this.zoomLevels.map(i => {
+            return {label: i.toString(), value: i, key: i};
+          })}>
+        </RNPickerSelect>
         }
 
         {this.state.showMainMenu &&

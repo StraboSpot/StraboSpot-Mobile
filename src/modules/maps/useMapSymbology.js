@@ -29,7 +29,7 @@ const useMapSymbology = (props) => {
       ['get', 'name'],
     ];
 
-    // Does not work on iOS
+    // Does not work on iOS - iOS doesn't build if there is more than 1 condition and a fallback in a case expression
     /*return ['case', ['has', 'orientation'],
      ['case',
      ['has', 'dip', ['get', 'orientation']], ['get', 'dip', ['get', 'orientation']],
