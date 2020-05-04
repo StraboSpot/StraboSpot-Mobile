@@ -3,12 +3,18 @@ import {mapReducers, basemaps} from './maps.constants';
 const initialState = {
   currentBasemap: basemaps.mapboxOutdoors,
   offlineMaps: {},
+  customMaps: [],
   vertexStartCoords: undefined,
   vertexEndCoords: undefined,
 };
 
 export const mapReducer = (state = initialState, action) => {
   switch (action.type) {
+    case mapReducers.ADD_CUSTOM_MAPS_FROM_DEVICE:
+      return {
+        ...state,
+        customMaps: action.customMaps,
+      };
     case mapReducers.CURRENT_BASEMAP:
       // console.log('Current Basemap in Reducer', action.basemap);
       return {

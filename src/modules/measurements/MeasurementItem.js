@@ -17,7 +17,9 @@ import * as themes from '../../shared/styles.constants';
 const MeasurementItem = (props) => {
 
   const getLabel = (key) => {
-    return labelDictionary[key] || key.replace(/_/g, ' ');
+    const measurementsDictionary = Object.values(labelDictionary.measurement).reduce((acc, form) => ({...acc, ...form}),
+      {});
+    return measurementsDictionary[key] || key.replace(/_/g, ' ');
   };
 
   const getTypeText = (item) => {

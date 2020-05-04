@@ -2,11 +2,13 @@ import React, {Component} from 'react';
 import {Alert, Text, View} from 'react-native';
 import {RNPickerSelect} from 'react-native-picker-select';
 import styles from './customMaps.styles';
-import {ListItem} from 'react-native-elements';
+import {Button, ListItem} from 'react-native-elements';
 import * as SharedUI from '../../../shared/ui/index';
 import {connect} from 'react-redux';
 import {Divider, Input} from 'react-native-elements';
 import {mapReducers} from '../maps.constants';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {isEmpty} from '../../../shared/Helpers';
 
 class CustomMapsMenu extends Component {
   _isMounted = false;
@@ -24,7 +26,7 @@ class CustomMapsMenu extends Component {
       maptitle: '',
       mapIdLabel: '',
       mapId: '',
-      accessToken: '',
+      accessToken: this.props.user.mapboxToken,
       showSubmitButton: true,
     };
 
@@ -94,10 +96,11 @@ class CustomMapsMenu extends Component {
 
   mapIdEdit = (text) => {
     this.setState({showSubmitButton: true});
+    let editedMapUrl = text.split('/').slice(3).join('/'); // Needs to be modified for url and saveUrl
     this.setState(prevState => {
       return {
         ...prevState,
-        mapId: text,
+        mapId: editedMapUrl,
       };
     }, () => console.log('mapId state:', this.state.mapId));
   };
@@ -112,13 +115,17 @@ class CustomMapsMenu extends Component {
   };
 
   checkMap = async () => {
+    let url, saveUrl;
+    const {mapId} = this.state;
+    // let mapIdEdit = mapId.split('/').slice(3).join('/'); // Needs to be modified for url and saveUrl
+    // console.log(mapIdEdit)
     this.setState({showSubmitButton: false});
     switch (this.state.chosenForm) {
       case 'Mapbox Style':
         //jasonash/cjl3xdv9h22j12tqfmyce22zq
         //pk.eyJ1IjoiamFzb25hc2giLCJhIjoiY2l2dTUycmNyMDBrZjJ5bzBhaHgxaGQ1diJ9.O2UUsedIcg1U7w473A5UHA
-        url = 'https://api.mapbox.com/styles/v1/' + this.state.mapId + '/tiles/256/0/0/0?access_token=' + this.state.accessToken;
-        saveUrl = 'https://api.mapbox.com/styles/v1/' + this.state.mapId + '/tiles/256/{z}/{x}/{y}?access_token=' + this.state.accessToken;
+        url = 'https://api.mapbox.com/styles/v1/' + mapId + '/tiles/256/0/0/0?access_token=' + this.state.accessToken;
+         saveUrl = 'https://api.mapbox.com/styles/v1/' + mapId + '/tiles/256/{z}/{x}/{y}?access_token=' + this.state.accessToken;
         break;
       case 'Map Warper':
         url = 'https://www.strabospot.org/mwproxy/' + this.state.mapId + '/0/0/0.png';
@@ -141,7 +148,7 @@ class CustomMapsMenu extends Component {
       console.log('customMaps: ', this.props.customMaps);
       if (statusCode == '200') {
         //check to see if it already exists in Redux
-        mapExists = false;
+        let mapExists = false;
         for (let i = 0; i < this.props.customMaps.length; i++) {
           if (this.props.customMaps[i].mapId == this.state.mapId) {
             mapExists = true;
@@ -154,12 +161,14 @@ class CustomMapsMenu extends Component {
             newReduxMaps.push(this.props.customMaps[i]);
           }
           let newMap = {};
-          newMap.id = this.makeMapId();
-          newMap.mapType = this.state.chosenForm;
-          newMap.mapId = this.state.mapId;
-          newMap.mapTitle = this.state.mapTitle;
+          newMap.opacity = 1; // TODO add opacity to custom map
+          newMap.overlay = true; // TODO add overlay to custom map
+          newMap.mapId = this.makeMapId();
+          newMap.source = this.state.chosenForm;
+          newMap.id = this.state.mapId;
+          newMap.title = this.state.mapTitle;
           if (this.state.accessToken) {
-            newMap.accessToken = this.state.accessToken;
+            newMap.key = this.state.accessToken;
           }
           newMap.url = saveUrl;
           newReduxMaps.push(newMap);
@@ -277,7 +286,7 @@ class CustomMapsMenu extends Component {
   };
 
   viewCustomMap = async (map) => {
-
+    let tempCurrentBasemap;
     console.log('viewCustomMap: ', map);
 
     tempCurrentBasemap =
@@ -304,7 +313,7 @@ class CustomMapsMenu extends Component {
 
     console.log('tempCurrentBasemap: ', tempCurrentBasemap);
     await this.props.onCurrentBasemap(tempCurrentBasemap);
-    this.props.closeSettingsDrawer();
+    // this.props.closeSettingsDrawer();
   };
 
   render() { //return whole modal here
@@ -319,14 +328,14 @@ class CustomMapsMenu extends Component {
               key={item.id}
               title={
                 <View style={styles.itemContainer}>
-                  <Text style={styles.itemTextStyle}>{item.mapTitle}</Text>
+                  <Text style={styles.itemTextStyle}>{item.title}</Text>
                 </View>
               }
               subtitle={
                 <View style={styles.itemSubContainer}>
                   <Text style={styles.itemSubTextStyle}>
                     <Text>
-                      ({item.mapType})
+                      ({item.source})
                     </Text>
                     <Text onPress={() => this.viewCustomMap(item)} style={styles.buttonPadding}>
                       &nbsp;&nbsp;&nbsp;View
@@ -341,7 +350,7 @@ class CustomMapsMenu extends Component {
           }
         </View>
         }
-        {this.state.showFrontPage && !this.props.customMaps &&
+        {this.state.showFrontPage && isEmpty(this.props.customMaps) &&
         <View style={styles.centertext}>
           <Text>
             No custom maps yet.
@@ -382,7 +391,7 @@ class CustomMapsMenu extends Component {
           <Input
             placeholder={'enter ' + this.state.mapIdLabel + '...'}
             onChangeText={(text) => this.mapIdEdit(text)}
-            value={this.state.mapId}
+            value={this.state.id}
           />
         </View>
         }
@@ -408,16 +417,23 @@ class CustomMapsMenu extends Component {
         }
         {this.state.showFrontPage &&
         <View style={{flex: 1}}>
-          <SharedUI.ButtonNoBackground
+          <Button
             onPress={this.showMapPicker}
-            name={'ios-arrow-back'}
+              icon={
+                <Icon
+                  style={styles.icon}
+                  name={'ios-add'}
+                  size={30}
+                  color={'white'}/>
+              }
+            // name={'ios-arrow-back'}
             size={20}
             color={'#407ad9'}
-          >
-            <Text style={styles.rightlink}>
-              Add New Map
-            </Text>
-          </SharedUI.ButtonNoBackground>
+            title={'Add New Map'}
+          />
+            {/*<Text style={styles.rightlink}>*/}
+            {/*  Add New Map*/}
+            {/*</Text>*/}
         </View>
         }
       </React.Fragment>
@@ -427,8 +443,9 @@ class CustomMapsMenu extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    customMaps: state.spot.customMaps,
+    customMaps: state.map.customMaps,
     currentBasemap: state.map.currentBasemap,
+    user: state.user,
   };
 };
 

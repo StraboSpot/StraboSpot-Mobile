@@ -11,6 +11,7 @@ import {projectReducers} from './project.constants';
 import useServerRequests from '../../services/useServerRequests';
 import useImagesHook from '../images/useImages';
 import useSpotsHook from '../spots/useSpots';
+import {mapReducers} from '../maps/maps.constants';
 
 const useProject = () => {
   let dirs = RNFetchBlob.fs.dirs;
@@ -160,15 +161,14 @@ const useProject = () => {
 
   const loadProjectFromDevice = async (selectedProject) => {
     console.log('SELECTED PROJECT', selectedProject);
+    const {projectDb, spotsDb, otherMapsDb} = selectedProject;
     const dirExists = await doesDeviceDirExist();
     if (dirExists) {
       if (!isEmpty(project)) await destroyOldProject();
-      const projectData = selectedProject.projectDb.project;
-      const projectDatasets = selectedProject.projectDb.datasets;
-      const projectSpots = selectedProject.spotsDb;
-      dispatch({type: spotReducers.ADD_SPOTS_FROM_DEVICE , spots: projectSpots});
-      dispatch({type: projectReducers.PROJECTS, project: projectData});
-      dispatch({type: projectReducers.DATASETS.DATASETS_UPDATE, datasets: projectDatasets})
+      dispatch({type: spotReducers.ADD_SPOTS_FROM_DEVICE , spots: spotsDb});
+      dispatch({type: projectReducers.PROJECTS, project: projectDb.project});
+      dispatch({type: projectReducers.DATASETS.DATASETS_UPDATE, datasets: projectDb.datasets})
+      dispatch({type: mapReducers.ADD_CUSTOM_MAPS_FROM_DEVICE, customMaps: otherMapsDb})
       return Promise.resolve(selectedProject.projectDb.project);
     }
   };

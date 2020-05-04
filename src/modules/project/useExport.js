@@ -18,6 +18,13 @@ const useExport = () => {
 
   const dispatch = useDispatch();
   const dbs = useSelector(state => state);
+  const dbsStateCopy = JSON.parse(JSON.stringify(dbs));
+  let spots = dbsStateCopy.spot.spots;
+  let configDb = {user: dbsStateCopy.user, other_maps: dbsStateCopy.map.customMaps};
+  let mapNamesDb = dbsStateCopy.map.offlineMaps;
+  let mapTilesDb = {};
+  let otherMapsDb = dbsStateCopy.map.customMaps;
+
   // dbs.project = {}
   let imageCount = 0;
   let imageBackupFailures = 0;
@@ -34,9 +41,9 @@ const useExport = () => {
     await exportData(devicePath + appDirectoryForDistributedBackups + '/' + exportedFileName, dataForExport,
       '/data.json');
     // dispatch({type: 'ADD_STATUS_MESSAGE', statusMessage: 'Data exported.'});
-    const otherMaps = await gatherOtherMapsForDistribution();
+    const otherMaps = await gatherOtherMapsForDistribution(exportedFileName);
     dispatch({type: homeReducers.REMOVE_LAST_STATUS_MESSAGE});
-    // dispatch({type: 'ADD_STATUS_MESSAGE', statusMessage: 'Other Maps exported.'});
+    dispatch({type: 'ADD_STATUS_MESSAGE', statusMessage: otherMaps});
     console.log('Other Maps Resolve Message:', otherMaps);
     const maps = await gatherMapsForDistribution(dataForExport, exportedFileName);
     console.log('Maps resolve message', maps.message);
@@ -158,14 +165,10 @@ const useExport = () => {
   // };
 
   const gatherDataForBackup = () => {
-    const dbsStateCopy = JSON.parse(JSON.stringify(dbs));
-    let spots = dbsStateCopy.spot.spots;
-    let configDb = {};
-    let mapNamesDb = dbsStateCopy.map.offlineMaps;
-    let mapTilesDb = {};
     let json = {
       mapNamesDb: mapNamesDb,
       mapTilesDb: mapTilesDb,
+      otherMapsDb: otherMapsDb,
       projectDb: dbsStateCopy.project,
       spotsDb: spots,
     };
@@ -220,16 +223,21 @@ const useExport = () => {
             });
         }
         else {
-          return resolve({message: 'There are no maps to save.'});
+          return resolve({message: 'There are no offline maps to save.'});
         }
       },
     );
   };
 
-  const gatherOtherMapsForDistribution = (data) => {
-    console.log(data);
+  const gatherOtherMapsForDistribution = (exportedFileName) => {
+    console.log(configDb);
     dispatch({type: 'ADD_STATUS_MESSAGE', statusMessage: 'Exporting Maps...'});
-    return Promise.resolve('(OTHER MAPS NOT WORKING YET) Other Maps exported to device');
+    if (!isEmpty(configDb.other_maps)) {
+      exportData(devicePath + appDirectoryForDistributedBackups + '/' + exportedFileName, configDb.other_maps, '/other_maps.json').then(() => {
+        console.log('Other Maps Exported');
+      })
+    }
+    return Promise.resolve('Other Maps exported to device');
   };
 
   const moveDistributedImage = async (image_id, fileName) => {
