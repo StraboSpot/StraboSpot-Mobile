@@ -141,7 +141,7 @@ const homeStyles = StyleSheet.create({
   modal: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
 });
 

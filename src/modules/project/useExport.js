@@ -41,10 +41,10 @@ const useExport = () => {
     await exportData(devicePath + appDirectoryForDistributedBackups + '/' + exportedFileName, dataForExport,
       '/data.json');
     // dispatch({type: 'ADD_STATUS_MESSAGE', statusMessage: 'Data exported.'});
-    const otherMaps = await gatherOtherMapsForDistribution(exportedFileName);
+    // const otherMaps = await gatherOtherMapsForDistribution(exportedFileName);
     dispatch({type: homeReducers.REMOVE_LAST_STATUS_MESSAGE});
-    dispatch({type: 'ADD_STATUS_MESSAGE', statusMessage: otherMaps});
-    console.log('Other Maps Resolve Message:', otherMaps);
+    // dispatch({type: 'ADD_STATUS_MESSAGE', statusMessage: otherMaps});
+    // console.log('Other Maps Resolve Message:', otherMaps);
     const maps = await gatherMapsForDistribution(dataForExport, exportedFileName);
     console.log('Maps resolve message', maps.message);
     dispatch({type: 'ADD_STATUS_MESSAGE', statusMessage: maps.message});

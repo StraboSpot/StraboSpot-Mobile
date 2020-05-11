@@ -20,14 +20,17 @@ const NotebookHeader = props => {
       if (props.spot.geometry.type === 'Point') {
         const lng = props.spot.geometry.coordinates[0];
         const lat = props.spot.geometry.coordinates[1];
-        const degreeSymbol = '\u00B0';
         const latitude = lat.toFixed(6);
-        let latitudeCardinal = Math.sign(lat) >= 0 ? 'North' : 'South';
-
         const longitude = lng.toFixed(6);
-        let longitudeCardinal = Math.sign(lng) >= 0 ? 'East' : 'West';
-
-        return longitude + degreeSymbol + ' ' + longitudeCardinal + ', ' + latitude + degreeSymbol + ' ' + latitudeCardinal;
+        if (props.currentImageBasemap && props.spot.properties.image_basemap){
+          return longitude + ' Xpx, ' + latitude + ' Ypx';
+        }
+        else {
+          const degreeSymbol = '\u00B0';
+          let latitudeCardinal = Math.sign(lat) >= 0 ? 'North' : 'South';
+          let longitudeCardinal = Math.sign(lng) >= 0 ? 'East' : 'West';
+          return longitude + degreeSymbol + ' ' + longitudeCardinal + ', ' + latitude + degreeSymbol + ' ' + latitudeCardinal;
+        }
       }
       return props.spot.geometry.type;
     }
@@ -62,6 +65,7 @@ const NotebookHeader = props => {
 function mapStateToProps(state) {
   return {
     spot: state.spot.selectedSpot,
+    currentImageBasemap: state.map.currentImageBasemap,
   };
 }
 

@@ -42,7 +42,7 @@ const UploadDialogBox = (props) => {
         }
         dialogTitle={
           <DialogTitle
-            style={styles.dialogTitle}
+            style={styles.dialogTitleContainer}
             textStyle={styles.dialogTitleText}
             title={props.dialogTitle}/>
         }

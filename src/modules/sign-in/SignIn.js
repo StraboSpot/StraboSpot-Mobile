@@ -67,6 +67,7 @@ const SignIn = (props) => {
   };
 
   const signIn = async () => {
+    console.log('Authenticating and signing in...');
     user = await serverRequests.authenticateUser(username, password);
     try {
       // login with provider
@@ -144,7 +145,6 @@ const SignIn = (props) => {
 
   const updateUserResponse = async (encodedLogin) => {
     let userProfile = await serverRequests.getProfile(encodedLogin);
-    console.table(userProfile);
     const userProfileImage = await serverRequests.getProfileImage(encodedLogin);
     if (userProfileImage) {
       readDataUrl(userProfileImage, (base64Image) => {

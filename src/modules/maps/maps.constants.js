@@ -20,8 +20,10 @@ export const MapModes = {
 };
 
 export const mapReducers = {
-  ADD_CUSTOM_MAPS_FROM_DEVICE: 'ADD_CUSTOM_MAPS_FROM_DEVICE',
+  ADD_MAPS_FROM_DEVICE: 'ADD_MAPS_FROM_DEVICE',
+  CLEAR_MAPS: 'CLEAR_MAPS',
   CURRENT_BASEMAP: 'CURRENT_BASEMAP',
+  CURRENT_IMAGE_BASEMAP: 'CURRENT_IMAGE_BASEMAP',
   CUSTOM_MAPS: 'CUSTOM_MAPS',
   DELETE_OFFLINE_MAP: 'DELETE_OFFLINE_MAP',
   OFFLINE_MAPS: 'OFFLINE_MAPS',
@@ -62,6 +64,12 @@ export const basemaps = {
     layerSaveId: 'mapbox.satellite',
     url: 'http://tiles.strabospot.org/v5/mapbox.satellite/{z}/{x}/{y}.png?access_token=' + MAPBOX_KEY,
     maxZoom: 19,
+  },
+  mapboxStyles : {
+    id: 'mapboxStyles',
+    layerId: 'mapboxStyles',
+    layerLabel: 'Mapbox Styles',
+    url: 'https://api.mapbox.com/styles/v1/tiles/256/{z}/{x}/{y}?access_token=' + MAPBOX_KEY,
   },
 };
 

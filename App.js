@@ -22,6 +22,7 @@ const App = () => {
         navigationOptions: {
           gestureEnabled: false,
         },
+        
       },
       SignIn: {
         screen: SignIn,

@@ -171,8 +171,9 @@ const ProjectList = (props) => {
       if (props.source === 'device') {
         // const project = selectedProject.projectDb;
         // console.log('User wants to:', action, 'and select', project.project.description.project_name);
-        const readDevice = await useProject.readDeviceFile(selectedProject);
-        await useProject.loadProjectFromDevice(readDevice);
+        await useProject.selectProject(selectedProject, props.source);
+        // const readDevice = await useProject.readDeviceFile(selectedProject);
+        // await useProject.loadProjectFromDevice(readDevice);
         console.log('Loaded From Device');
         dispatch({type: homeReducers.SET_LOADING, view: 'modal', bool: false});
         dispatch({type: homeReducers.ADD_STATUS_MESSAGE, statusMessage: 'Download Complete!'});

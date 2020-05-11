@@ -30,7 +30,6 @@ const useHome = (props) => {
 
   const checkForDeviceBackupDir = () => {
     return RNFetchBlob.fs.isDir(devicePath + appDirectoryForDistributedBackups).then(res => {
-      console.log('Backup Directory Exists:', res);
       dispatch({type: projectReducers.BACKUP_DIRECTORY_EXISTS, bool: res});
       return Promise.resolve();
     });
@@ -40,7 +39,6 @@ const useHome = (props) => {
     NetInfo.addEventListener(state => {
       if (state.isConnected) {
         dispatch({type: homeReducers.SET_ISONLINE, online: state.isConnected});
-        console.log('Is Online')
       }
       else if (state.isConnected) Alert.alert(state.isConnected.toString());
     });

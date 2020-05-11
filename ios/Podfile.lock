@@ -192,17 +192,17 @@ PODS:
     - React
   - react-native-image-resizer (1.2.1):
     - React
-  - react-native-mapbox-gl (8.0.0-rc5):
+  - react-native-mapbox-gl (8.0.0):
     - "@react-native-mapbox-gl-mapbox-static (~> 5.7)"
     - Mapbox-iOS-SDK (~> 5.7)
     - React
-    - react-native-mapbox-gl/DynamicLibrary (= 8.0.0-rc5)
-    - react-native-mapbox-gl/StaticLibraryFixer (= 8.0.0-rc5)
-  - react-native-mapbox-gl/DynamicLibrary (8.0.0-rc5):
+    - react-native-mapbox-gl/DynamicLibrary (= 8.0.0)
+    - react-native-mapbox-gl/StaticLibraryFixer (= 8.0.0)
+  - react-native-mapbox-gl/DynamicLibrary (8.0.0):
     - "@react-native-mapbox-gl-mapbox-static (~> 5.7)"
     - Mapbox-iOS-SDK (~> 5.7)
     - React
-  - react-native-mapbox-gl/StaticLibraryFixer (8.0.0-rc5):
+  - react-native-mapbox-gl/StaticLibraryFixer (8.0.0):
     - "@react-native-mapbox-gl-mapbox-static (~> 5.7)"
     - Mapbox-iOS-SDK (~> 5.7)
     - React
@@ -279,6 +279,8 @@ PODS:
     - React
   - RNCMaskedView (0.1.7):
     - React
+  - RNCPicker (1.3.0):
+    - React
   - RNDateTimePicker (2.3.1):
     - React
   - RNFS (2.16.6):
@@ -342,6 +344,7 @@ DEPENDENCIES:
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
+  - "RNCPicker (from `../node_modules/@react-native-community/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -431,6 +434,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/async-storage"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
+  RNCPicker:
+    :path: "../node_modules/@react-native-community/picker"
   RNDateTimePicker:
     :path: "../node_modules/@react-native-community/datetimepicker"
   RNFS:
@@ -472,7 +477,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: cbd9d6bd06bac411eed2671810f454d4908484a8
   react-native-image-picker: 668e72d0277dc8c12ae90e835507c1eddd2e4f85
   react-native-image-resizer: 487329f0748d62a075f9d1ba1676c3ab394d169f
-  react-native-mapbox-gl: 169575018a319ecaa8af0e06a886ca4beb45dae0
+  react-native-mapbox-gl: 77b87a1dd2d7b41b6b77018c0f3bed5f8ee55c81
   react-native-netinfo: 61a837131d5f0194d22f8048a456d8f31a074baa
   react-native-safe-area-context: 8260e5157617df4b72865f44006797f895b2ada7
   react-native-simple-compass: 2cd09f4e5dbb7a594c2f0d9f85d035e93c9fccca
@@ -490,6 +495,7 @@ SPEC CHECKSUMS:
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNCAsyncStorage: b16697280b08bab4b5f2f67f752d93d13a52e9ed
   RNCMaskedView: 90dd32f5b786bd562e876e1421ea77c700cbf71e
+  RNCPicker: 7d06ee91dff65b0bcd400ca00039051d5ddcb938
   RNDateTimePicker: f654c60568209005a3d9a5a6c4bff0c7094ec527
   RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38

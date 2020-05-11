@@ -18,6 +18,9 @@ const useProject = () => {
   const devicePath = Platform.OS === 'ios' ? dirs.DocumentDir : dirs.SDCardDir; // ios : android
   const appDirectory = '/StraboSpot';
   const appDirectoryForDistributedBackups = '/StraboSpotProjects';
+  const appDirectoryTiles = '/StraboSpotTiles';
+  const zipsDirectory = appDirectoryTiles + '/TileZips';
+
 
   const dispatch = useDispatch();
   const datasets = useSelector(state => state.project.datasets);
@@ -51,6 +54,35 @@ const useProject = () => {
       console.log('SPOT', spot);
       return spot;
     }
+  };
+
+  const copyZipMapsForDistribution = (fileName) => {
+    return new Promise(async (resolve, reject) => {
+      RNFetchBlob.fs.isDir(devicePath + appDirectoryForDistributedBackups + '/' + fileName + '/maps').then(exists => {
+        console.log('Dir exists', exists);
+        if (exists) {
+          doesAppDirExist(appDirectoryTiles).then(res => {
+            if (res) {
+              doesAppDirExist(zipsDirectory).then(res => {
+                if (res) {
+                  RNFetchBlob.fs.ls(devicePath + zipsDirectory).then(files => {
+                    console.log('files', files);
+                    resolve();
+                  })
+                  // resolve();
+                }
+                else resolve(zipsDirectory, 'does NOT exist.');
+              });
+            }
+            else resolve(appDirectoryTiles, 'does NOT exist.');
+          });
+        }
+        else resolve('Maps directory not found.');
+      })
+        .catch(err=> {
+        console.log('ERROR checking directory', err);
+      });
+    });
   };
 
   const createDataset = (name) => {
@@ -118,12 +150,20 @@ const useProject = () => {
       await dispatch({type: projectReducers.PROJECT_CLEAR});
       await dispatch({type: spotReducers.CLEAR_SPOTS});
       await dispatch({type: projectReducers.DATASETS.DATASETS_CLEAR});
+      await dispatch({type: mapReducers.CLEAR_MAPS});
     // }
     return Promise.resolve();
   };
 
-  const doesDeviceDirExist = async () => {
-    return await RNFetchBlob.fs.isDir(devicePath + appDirectoryForDistributedBackups);
+  const doesAppDirExist = async (subDirectory) => {
+      return  await RNFetchBlob.fs.isDir(devicePath + subDirectory);
+  };
+
+  const doesDeviceDirExist = async (subDirectory) => {
+    if (subDirectory !== undefined) {
+      return  await RNFetchBlob.fs.isDir(devicePath + appDirectoryForDistributedBackups + '/' + subDirectory);
+    }
+    else return await RNFetchBlob.fs.isDir(devicePath + appDirectoryForDistributedBackups);
   };
 
   const getAllDeviceProjects = async () => {
@@ -161,14 +201,18 @@ const useProject = () => {
 
   const loadProjectFromDevice = async (selectedProject) => {
     console.log('SELECTED PROJECT', selectedProject);
-    const {projectDb, spotsDb, otherMapsDb} = selectedProject;
+    const {projectDb, spotsDb, otherMapsDb, mapNamesDb, mapTilesDb} = selectedProject;
     const dirExists = await doesDeviceDirExist();
+    console.log(dirExists)
     if (dirExists) {
       if (!isEmpty(project)) await destroyOldProject();
       dispatch({type: spotReducers.ADD_SPOTS_FROM_DEVICE , spots: spotsDb});
       dispatch({type: projectReducers.PROJECTS, project: projectDb.project});
-      dispatch({type: projectReducers.DATASETS.DATASETS_UPDATE, datasets: projectDb.datasets})
-      dispatch({type: mapReducers.ADD_CUSTOM_MAPS_FROM_DEVICE, customMaps: otherMapsDb})
+      dispatch({type: projectReducers.DATASETS.DATASETS_UPDATE, datasets: projectDb.datasets});
+      if (!isEmpty(otherMapsDb) || !isEmpty(mapNamesDb)) {
+        dispatch({type: mapReducers.ADD_MAPS_FROM_DEVICE, field: 'customMaps', maps: otherMapsDb});
+        dispatch({type: mapReducers.ADD_MAPS_FROM_DEVICE, field: 'offlineMaps', maps: mapNamesDb});
+      }
       return Promise.resolve(selectedProject.projectDb.project);
     }
   };
@@ -184,6 +228,9 @@ const useProject = () => {
       if (!projectResponse.description.project_name) projectResponse.description.project_name = 'Unnamed';
       if (!projectResponse.other_features) projectResponse.other_features = defaultTypes;
       await dispatch({type: projectReducers.PROJECTS, project: projectResponse});
+      if (projectResponse.other_maps) {
+        dispatch({type: mapReducers.CUSTOM_MAPS, customMaps: projectResponse.other_maps});
+      }
       const datasetsResponse = await getDatasets(selectedProject);
       if (datasetsResponse.datasets.length === 1){
         await useSpots.downloadSpots(datasetsResponse.datasets[0], user.encoded_login);
@@ -247,7 +294,11 @@ const useProject = () => {
     let projectResponse = null;
     if (source === 'device') {
       projectResponse = await readDeviceFile(selectedProject)
-        .then(dataFile => {
+        .then(async dataFile => {
+          if (!isEmpty(dataFile.mapNamesDb) || !isEmpty(dataFile.otherMapsDb)) {
+            const doMapsDirExists = await copyZipMapsForDistribution(selectedProject.fileName);
+            console.log(doMapsDirExists, '!');
+          }
           return loadProjectFromDevice(dataFile).then((data) => {
             return data;
           });

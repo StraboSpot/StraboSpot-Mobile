@@ -50,12 +50,12 @@ const DialogBox = (props) => {
         }
         dialogTitle={
           <DialogTitle
-            style={styles.dialogTitle}
+            style={styles.dialogTitleContainer}
             textStyle={styles.dialogTitleText}
             title={props.dialogTitle}/>
         }
       >
-        <DialogContent>
+        <DialogContent style={styles.dialogContent}>
           {props.children}
         </DialogContent>
       </Dialog>

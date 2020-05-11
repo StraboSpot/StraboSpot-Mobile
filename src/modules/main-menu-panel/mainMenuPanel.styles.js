@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     // paddingTop: 5,
     // textAlignVertical: 'center',
     // paddingBottom: 5,
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontSize: themes.PRIMARY_TEXT_SIZE,
     color: themes.SECONDARY_ITEM_TEXT_COLOR,
   },

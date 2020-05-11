@@ -178,7 +178,7 @@ const useMapSymbology = (props) => {
       fillOpacity: 0.4,
     },
     pointSelected: {
-      circleRadius: 30,
+      circleRadius: 35,
       circleColor: 'orange',
       circleOpacity: 0.4,
     },

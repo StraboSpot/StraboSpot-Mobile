@@ -6,14 +6,13 @@ import MapActionsDialog from './MapActionsDialogBox';
 import MapSymbolsDialog from './MapSymbolsDialogBox';
 import BaseMapDialog from './BaseMapDialogBox';
 
-// <----- Home screen Panels ----->
+// <-----Home screen Panels----->
 import AllSpotsPanel from '../notebook-panel/AllSpots';
 import NotebookPanel from '../notebook-panel/NotebookPanel';
 import SettingsPanel from '../main-menu-panel/MainMenuPanel';
-import {MapModes} from '../maps/maps.constants';
+import {MapModes, mapReducers} from '../maps/maps.constants';
 import {SettingsMenuItems} from '../main-menu-panel/mainMenu.constants';
 import Modal from 'react-native-modal';
-import SaveMapModal from './SaveMapsModal';
 import NotebookPanelMenu from '../notebook-panel/NotebookPanelMenu';
 import {connect, useDispatch, useSelector} from 'react-redux';
 import {NotebookPages, notebookReducers} from '../notebook-panel/notebook.constants';
@@ -37,6 +36,7 @@ import settingPanelStyles from '../main-menu-panel/mainMenuPanel.styles';
 import IconButton from '../../shared/ui/IconButton';
 import VertexDrag from '../maps/VertexDrag';
 import {animatePanels, isEmpty} from '../../shared/Helpers';
+import SaveMapsModal from '../maps/offline-maps/SaveMapsModal';
 
 // Hooks
 import useImagesHook from '../images/useImages';
@@ -85,7 +85,7 @@ const Home = (props) => {
   const isErrorMessagesModalVisible = useSelector(state => state.home.isErrorMessagesModalVisible);
   const isInfoMessagesModalVisible = useSelector(state => state.home.isInfoModalVisible);
   const isProjectLoadSelectionModalVisible = useSelector(state => state.home.isProjectLoadSelectionModalVisible);
-  const isMainMenuPanelVisible = useSelector( state => state.home.isSettingsPanelVisible);
+  const isMainMenuPanelVisible = useSelector(state => state.home.isSettingsPanelVisible);
 
   // const imagesCount = useSelector(state => state.home.imageProgress.imagesDownloadedCount);
   // const imagesNeeded = useSelector(state => state.home.imageProgress.neededImageIds);
@@ -114,7 +114,7 @@ const Home = (props) => {
   const mapViewComponent = useRef(null);
   const toastRef = useRef();
 
-  useEffect( () => {
+  useEffect(() => {
     // props.setDeviceDims(dimensions);
     // if (props.deviceDimensions.width < 500) {
     //   Orientation.unlockAllOrientations();
@@ -129,10 +129,19 @@ const Home = (props) => {
   }, []);
 
   useEffect(() => {
+    /*if(props.currentImageBasemap != undefined){
+     setDialogs(prev => ({
+     ...prev,
+     baseMapMenuVisible : false
+     }));
+     }*/
+  }, [props.currentImageBasemap]);
+
+  useEffect(() => {
     console.log('Render 2 in Home', props.homePageVisible);
-    return function homeCleanUp () {
+    return function homeCleanUp() {
       console.log('Cleaned up in Home');
-    }
+    };
   }, [props.homePageVisible]);
 
   const cancelEdits = async () => {
@@ -161,7 +170,7 @@ const Home = (props) => {
           `The ${name.toUpperCase()} Shortcut button in the  will be functioning soon!`);
         break;
       case 'measurement':
-       dispatch({type: spotReducers.CLEAR_SELECTED_SPOTS});
+        dispatch({type: spotReducers.CLEAR_SELECTED_SPOTS});
         props.setModalVisible(Modals.SHORTCUT_MODALS.COMPASS);
         closeNotebookPanel();
         break;
@@ -182,7 +191,8 @@ const Home = (props) => {
         useMaps.setPointAtCurrentLocation().then((point) => {
           console.log('Point', point);
           useImages.launchCameraFromNotebook().then((imagesSavedLength) => {
-            imagesSavedLength === 1 ? toastRef.current.show(`${imagesSavedLength} photo saved in spot: ${point.properties.name}`) :
+            imagesSavedLength === 1 ? toastRef.current.show(
+              `${imagesSavedLength} photo saved in spot: ${point.properties.name}`) :
               toastRef.current.show(`${imagesSavedLength} photos saved in spot: ${props.selectedSpot.properties.name}`);
             openNotebookPanel();
           });
@@ -236,7 +246,9 @@ const Home = (props) => {
       case 'currentLocation':
         goToCurrentLocation();
         break;
-
+      case 'closeImageBasemap':
+        dispatch(({type: mapReducers.CURRENT_IMAGE_BASEMAP, currentImageBasemap: undefined}));
+        break;
       // Map Actions
       case 'zoom':
         console.log(`${name}`, ' was clicked');
@@ -419,7 +431,7 @@ const Home = (props) => {
 
   const renderAllSpotsPanel = () => {
     return (
-      <View style={[notebookStyles.allSpotsPanel,]}>
+      <View style={[notebookStyles.allSpotsPanel]}>
         <AllSpotsPanel/>
       </View>
     );
@@ -456,20 +468,20 @@ const Home = (props) => {
   };
 
   const renderErrorMessageDialogBox = () => {
-      return (
-        <StatusDialogBox
-          dialogTitle={'Error...'}
-          style={sharedDialogStyles.dialogWarning}
-          visible={isErrorMessagesModalVisible}
-        >
-          <Text style={sharedDialogStyles.dialogStatusMessageText}>{statusMessages.join('\n')}</Text>
-          <Button
-            title={'OK'}
-            type={'clear'}
-            onPress={() => dispatch({type: homeReducers.SET_ERROR_MESSAGES_MODAL_VISIBLE, bool: false})}
-          />
-        </StatusDialogBox>
-      )
+    return (
+      <StatusDialogBox
+        dialogTitle={'Error...'}
+        style={sharedDialogStyles.dialogWarning}
+        visible={isErrorMessagesModalVisible}
+      >
+        <Text style={sharedDialogStyles.dialogStatusMessageText}>{statusMessages.join('\n')}</Text>
+        <Button
+          title={'OK'}
+          type={'clear'}
+          onPress={() => dispatch({type: homeReducers.SET_ERROR_MESSAGES_MODAL_VISIBLE, bool: false})}
+        />
+      </StatusDialogBox>
+    );
   };
 
   const renderNotesShortcutModal = () => {
@@ -478,6 +490,16 @@ const Home = (props) => {
         close={() => props.setModalVisible(null)}
         onPress={page => modalHandler(page)}
       />
+    );
+  };
+
+  const renderSaveMapsModal = () => {
+    return (
+        <SaveMapsModal
+          close={() => setIsOfflineMapModalVisible(false)}
+          map={mapViewComponent.current}
+          visible={isOfflineMapModalVisible}
+        />
     );
   };
 
@@ -490,15 +512,15 @@ const Home = (props) => {
         onTouchOutside={() => dispatch({type: homeReducers.SET_STATUS_MESSAGES_MODAL_VISIBLE, bool: false})}
         // disabled={progress !== 1 && !uploadErrors}
       >
-        <View style={{minHeight: 100}} >
-            {isLoading.modal &&
-              <View style={{flex: 1}}>
-              <BallIndicator
-                color={'darkgrey'}
-                count={8}
-                size={30}
-              />
-              </View>}
+        <View style={{minHeight: 100}}>
+          {isLoading.modal &&
+          <View style={{flex: 1}}>
+            <BallIndicator
+              color={'darkgrey'}
+              count={8}
+              size={30}
+            />
+          </View>}
           <View style={{flex: 1, paddingTop: 15}}>
             <Text style={{textAlign: 'center'}}>{statusMessages.join('\n')}</Text>
             {statusMessages.includes('Download Complete!') || statusMessages.includes('Upload Complete!')
@@ -506,10 +528,10 @@ const Home = (props) => {
             || statusMessages.includes('Project Backup Complete!')
             || statusMessages.includes('Project loaded.')
               ? <Button
-              title={'OK'}
-              type={'clear'}
-              onPress={() => dispatch({type: homeReducers.SET_STATUS_MESSAGES_MODAL_VISIBLE, bool: false})}
-            /> : null}
+                title={'OK'}
+                type={'clear'}
+                onPress={() => dispatch({type: homeReducers.SET_STATUS_MESSAGES_MODAL_VISIBLE, bool: false})}
+              /> : null}
           </View>
         </View>
       </StatusDialogBox>
@@ -641,12 +663,13 @@ const Home = (props) => {
           onHandlerStateChange={(ev, name) => flingHandlerNotebook(ev, name)}
           closeNotebook={closeNotebookPanel}
           textStyle={{fontWeight: 'bold', fontSize: 12}}
-          onPress={name => notebookClickHandler(name)} />
+          onPress={name => notebookClickHandler(name)}/>
       </Animated.View>
     </FlingGestureHandler>;
 
   // Renders Compass modals in either shortcut or notebook view
-  if (props.modalVisible === Modals.NOTEBOOK_MODALS.COMPASS && props.isNotebookPanelVisible && !isEmpty(props.selectedSpot)) {
+  if (props.modalVisible === Modals.NOTEBOOK_MODALS.COMPASS && props.isNotebookPanelVisible && !isEmpty(
+    props.selectedSpot)) {
     compassModal =
       <NotebookCompassModal
         close={() => props.setModalVisible(null)}
@@ -654,11 +677,11 @@ const Home = (props) => {
       />;
   }
   else if (props.modalVisible === Modals.SHORTCUT_MODALS.COMPASS) {
-      compassModal =
-        <ShortcutCompassModal
-          close={() => props.setModalVisible(null)}
-          onPress={page => modalHandler(page, Modals.NOTEBOOK_MODALS.COMPASS)}
-        />;
+    compassModal =
+      <ShortcutCompassModal
+        close={() => props.setModalVisible(null)}
+        onPress={page => modalHandler(page, Modals.NOTEBOOK_MODALS.COMPASS)}
+      />;
   }
 
   // Renders samples modals in either shortcut or notebook view
@@ -671,17 +694,16 @@ const Home = (props) => {
       />;
   }
   else if (props.modalVisible === Modals.SHORTCUT_MODALS.SAMPLE) {
-      samplesModal =
-        <ShortcutSamplesModal
-          close={() => props.setModalVisible(null)}
-          cancel={() => samplesModalCancel()}
-          onPress={(page) => modalHandler(page, Modals.NOTEBOOK_MODALS.SAMPLE)}
-        />;
+    samplesModal =
+      <ShortcutSamplesModal
+        close={() => props.setModalVisible(null)}
+        cancel={() => samplesModalCancel()}
+        onPress={(page) => modalHandler(page, Modals.NOTEBOOK_MODALS.SAMPLE)}
+      />;
   }
 
   return (
     <View style={homeStyles.container}>
-      {/*{props.isNotebookPanelVisible && notebookPanel}*/}
       <MapView
         mapComponentRef={mapViewComponent}
         mapMode={mapMode}
@@ -689,8 +711,7 @@ const Home = (props) => {
         endDraw={endDraw}
         openNotebookOnSelectedSpot={() => openNotebookPanel()}
       />
-      {props.vertexStartCoords && <VertexDrag/>}
-      {/*{isLoading && <LoadingSpinner/>}*/}
+      {props.vertexStartCoords && <VertexDrag/>}     
           <ToastPopup toastRef={toastRef} />
       {Platform.OS === 'ios' &&
       <Animated.View style={leftsideIconAnimation}>
@@ -736,13 +757,14 @@ const Home = (props) => {
           </View>
           : null}
       </View>
-      <Animated.View style={props.isAllSpotsPanelVisible ? [homeStyles.onlineStatus, rightsideIconAnimation, {right: 125}] : [homeStyles.onlineStatus, rightsideIconAnimation]}>
+      <Animated.View
+        style={props.isAllSpotsPanelVisible ? [homeStyles.onlineStatus, rightsideIconAnimation, {right: 125}] : [homeStyles.onlineStatus, rightsideIconAnimation]}>
         <IconButton
           source={props.isOnline ? online : offline}
-          // onPress={clickHandler.bind(this, "search")}
         />
       </Animated.View>
-      <Animated.View style={props.isAllSpotsPanelVisible ? [homeStyles.rightsideIcons, rightsideIconAnimation, {right: 125}] : [homeStyles.rightsideIcons, rightsideIconAnimation]}>
+      {!props.currentImageBasemap && <Animated.View
+        style={props.isAllSpotsPanelVisible ? [homeStyles.rightsideIcons, rightsideIconAnimation, {right: 125}] : [homeStyles.rightsideIcons, rightsideIconAnimation]}>
         {props.shortcutSwitchPosition.Tag ?
           <IconButton
             source={require('../../assets/icons/TagButton.png')}
@@ -765,7 +787,8 @@ const Home = (props) => {
         {props.shortcutSwitchPosition.Note ?
           <IconButton
             name={'Note'}
-            source={props.modalVisible === Modals.SHORTCUT_MODALS.NOTES ? require('../../assets/icons/NoteButton_pressed.png') : require('../../assets/icons/NoteButton.png')}
+            source={props.modalVisible === Modals.SHORTCUT_MODALS.NOTES ? require(
+              '../../assets/icons/NoteButton_pressed.png') : require('../../assets/icons/NoteButton.png')}
             onPress={() => clickHandler('note')}
           /> : null}
         {props.shortcutSwitchPosition.Photo ?
@@ -778,21 +801,18 @@ const Home = (props) => {
             source={require('../../assets/icons/SketchButton.png')}
             onPress={() => clickHandler('sketch')}
           /> : null}
-      </Animated.View>
+      </Animated.View>}
       <View style={homeStyles.notebookViewIcon}>
         {props.modalVisible === Modals.SHORTCUT_MODALS.COMPASS ||
-        props.modalVisible === Modals.SHORTCUT_MODALS.SAMPLE || props.modalVisible === Modals.SHORTCUT_MODALS.NOTES ? null : <IconButton
-          source={require('../../assets/icons/NotebookViewButton.png')}
-          onPress={() => openNotebookPanel()}
-        />}
+        props.modalVisible === Modals.SHORTCUT_MODALS.SAMPLE || props.modalVisible === Modals.SHORTCUT_MODALS.NOTES ? null :
+          <IconButton
+            source={require('../../assets/icons/NotebookViewButton.png')}
+            onPress={() => openNotebookPanel()}
+          />}
       </View>
-      {/*<View style={props.isNotebookPanelVisible ? home.bottomRightIconsShortcutModal*/}
-      {/*: home.bottomRightIcons}>*/}
-      {/* displays the Online boolean in text*/}
-      {/*<View><Text>Online: {props.isOnline.toString()}</Text></View> */}
-
       {buttons.drawButtonsVisible ?
-        <Animated.View style={props.isAllSpotsPanelVisible ? [homeStyles.drawToolsContainer, rightsideIconAnimation, {right: 125}] :  [homeStyles.drawToolsContainer, rightsideIconAnimation]}>
+        <Animated.View
+          style={props.isAllSpotsPanelVisible ? [homeStyles.drawToolsContainer, rightsideIconAnimation, {right: 125}] : [homeStyles.drawToolsContainer, rightsideIconAnimation]}>
           <IconButton
             style={{top: 5}}
             source={mapMode === MapModes.DRAW.POINT ?
@@ -816,7 +836,6 @@ const Home = (props) => {
           />
         </Animated.View>
         : null}
-      {/*</View>*/}
       <Animated.View style={[homeStyles.homeIconContainer, leftsideIconAnimation]}>
         <IconButton
           source={require('../../assets/icons/HomeButton.png')}
@@ -832,18 +851,27 @@ const Home = (props) => {
           source={require('../../assets/icons/SymbolsButton.png')}
           onPress={() => toggleDialog('mapSymbolsMenuVisible')}
         />
-        <IconButton
+        {!props.currentImageBasemap && <IconButton
           source={require('../../assets/icons/layersButton.png')}
           onPress={() => toggleDialog('baseMapMenuVisible')}
-        />
+        />}
       </Animated.View>
+      {!props.currentImageBasemap  &&
       <Animated.View style={[homeStyles.bottomLeftIcons, leftsideIconAnimation]}>
         <IconButton
           style={{top: 5}}
           source={require('../../assets/icons/MyLocationButton.png')}
           onPress={clickHandler.bind(this, 'currentLocation')}
         />
-      </Animated.View>
+      </Animated.View>}
+      {props.currentImageBasemap &&
+      <Animated.View style={[homeStyles.bottomLeftIcons, leftsideIconAnimation]}>
+        <IconButton
+          style={{top: 5}}
+          source={require('../../assets/icons/Close_button.png')}
+          onPress={clickHandler.bind(this, 'closeImageBasemap')}
+        />
+      </Animated.View>}
       <MapActionsDialog
         visible={dialogs.mapActionsMenuVisible}
         onPress={(name) => dialogClickHandler('mapActionsMenuVisible', name)}
@@ -864,27 +892,6 @@ const Home = (props) => {
         onPress={(name, position) => dialogClickHandler('notebookPanelMenuVisible', name, position)}
         onTouchOutside={() => toggleDialog('notebookPanelMenuVisible')}
       />
-      {/*{props.isAllSpotsPanelVisible ? <Animated.View style={[notebookStyles.allSpotsPanel, animateAllSpotsMenu]}>*/}
-      {/*  <AllSpotsView*/}
-      {/*    close={() => closeAllSpotsPanel()}*/}
-      {/*  />*/}
-      {/*</Animated.View> : null}*/}
-      {/*<Animated.View style={[notebookStyles.allSpotsPanel, animateAllSpotsMenu]}>*/}
-      {/*  <AllSpotsView*/}
-      {/*    close={() => closeAllSpotsPanel()}*/}
-      {/*  />*/}
-      {/*</Animated.View>*/}
-      <Modal
-        isVisible={isOfflineMapModalVisible}
-        useNativeDriver={true}
-      >
-        <View style={homeStyles.modal}>
-          <SaveMapModal
-            close={toggleOfflineMapModal}
-            map={mapViewComponent.current}
-          />
-        </View>
-      </Modal>
       <Modal
         isVisible={props.isImageModalVisible}
         useNativeDriver={true}
@@ -911,16 +918,14 @@ const Home = (props) => {
       {renderStatusDialogBox()}
       {renderInfoDialogBox()}
       {renderErrorMessageDialogBox()}
-      {/*<View style={{position: 'absolute', left: 550, top: 50, backgroundColor: 'white', padding: 20}}>*/}
-      {/*  <Text>{imagesCount} of {imagesNeeded}</Text>*/}
-      {/*  <ProgressCircle progress={imagesCount / imagesNeeded} />*/}
-      {/*</View>*/}
+      {renderSaveMapsModal()}
     </View>
   );
 };
 
 function mapStateToProps(state) {
   return {
+    currentImageBasemap: state.map.currentImageBasemap,
     currentBasemap: state.map.currentBasemap,
     selectedSpot: state.spot.selectedSpot,
     selectedImage: state.spot.selectedAttributes[0],

@@ -9,9 +9,10 @@ import {settingPanelReducers} from './mainMenuPanel.constants';
 import {SettingsMenuItems} from './mainMenu.constants';
 import {spotReducers} from '../spots/spot.constants';
 import ActiveProject from '../project/ActiveProjectPanel';
-import CustomMapsMenu from '../maps/custom-maps-menu/CustomMapsMenu';
+import CustomMapsMenu from '../maps/custom-maps/ManageCustomMaps';
+import ImageBaseMaps from '../maps/ImageBasemaps';
 import ImageGallery from '../images/ImageGallery';
-import ManageOfflineMapsMenu from '../maps/manage-offline-maps-menu/ManageOfflineMapsMenu';
+import ManageOfflineMapsMenu from '../maps/offline-maps/ManageOfflineMaps';
 import MyStraboSpot from '../project/MyStraboSpot';
 import ProjectList from '../project/ProjectList';
 import SamplesList from '../samples/SamplesList';
@@ -88,6 +89,14 @@ const MainMenuPanel = props => {
       page =
         <View style={styles.settingsPanelContainer}>
           <ManageOfflineMapsMenu/>
+        </View>;
+      break;
+      case SettingsMenuItems.MAPS.IMAGE_BASEMAPS :
+      page =
+        <View style={styles.settingsPanelContainer}>
+          <ImageBaseMaps
+            getSpotData={(spotId) => getSpotFromId(spotId)}
+         />
         </View>;
       break;
     case SettingsMenuItems.MAPS.CUSTOM:

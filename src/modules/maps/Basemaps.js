@@ -2,17 +2,23 @@ import React, {useState} from 'react';
 import {useSelector} from 'react-redux';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import * as turf from '@turf/turf/index';
-
+import useImagesHook from '../images/useImages';
 import useMapSymbologyHook from './useMapSymbology';
+import {isEmpty} from '../../shared/Helpers';
+import proj4 from 'proj4';
+import {Platform} from 'react-native';
 
 // Constants
 import {symbols as symbolsConstant} from './maps.constants';
 
 function Basemap(props) {
   const basemap = useSelector(state => state.map.currentBasemap);
+  const currentImageBasemap = useSelector(state => state.map.currentImageBasemap);
   const {mapRef, cameraRef} = props.forwardedRef;
   const [useMapSymbology] = useMapSymbologyHook();
   const [symbols, setSymbol] = useState(symbolsConstant);
+  const [useImages] = useImagesHook();
+
   return <MapboxGL.MapView
     id={basemap.id}
     ref={mapRef}
@@ -29,15 +35,19 @@ function Basemap(props) {
     scrollEnabled={props.allowMapViewMove}
     zoomEnabled={props.allowMapViewMove}
   >
+
+    {!currentImageBasemap &&
     <MapboxGL.UserLocation
-      animated={false}/>
+      animated={false}/>}
+
     <MapboxGL.Camera
       ref={cameraRef}
-      zoomLevel={15}
-      centerCoordinate={props.centerCoordinate}
+      zoomLevel={currentImageBasemap ? 7 : 15}
+      centerCoordinate={currentImageBasemap ? proj4('EPSG:3857', 'EPSG:4326', [(currentImageBasemap.width * 100) / 2, (currentImageBasemap.height * 100) / 2]) : props.centerCoordinate}
       // followUserLocation={true}   // Can't follow user location if want to zoom to extent of Spots
       // followUserMode='normal'
     />
+
     <MapboxGL.RasterSource
       id={basemap.id}
       tileUrlTemplates={[basemap.url]}
@@ -50,6 +60,32 @@ function Basemap(props) {
         style={{rasterOpacity: 1}}
       />
     </MapboxGL.RasterSource>
+
+    {/* Image Basemap background Layer */}
+    {Platform.OS === 'android' && currentImageBasemap &&
+    <MapboxGL.BackgroundLayer
+      id='background'
+      style={{backgroundColor: '#ffffff'}}/>
+    }
+
+    {Platform.OS === 'ios' && currentImageBasemap &&
+    <MapboxGL.Animated.ImageSource
+      id='imageBasemapBackground'
+      coordinates={[[-250, 85], [250, 85], [250, -85], [-250, -85]]}
+      url={require('../../assets/images/imageBasemapBackground.jpg')}>
+      <MapboxGL.RasterLayer id='imageBasemapBackgroundLayer'
+                            style={{rasterOpacity: 1}}/>
+    </MapboxGL.Animated.ImageSource>}
+    {/* Image Basemap Layer */}
+    {currentImageBasemap && !isEmpty(props.coordQuad) &&
+    <MapboxGL.Animated.ImageSource
+      id='imageBasemap'
+      coordinates={props.coordQuad}
+      url={useImages.getLocalImageSrc(currentImageBasemap.id)}>
+      <MapboxGL.RasterLayer id='imageBasemapLayer'
+                            style={{rasterOpacity: 1}}/>
+    </MapboxGL.Animated.ImageSource>}
+
     {/* Feature Layer */}
     <MapboxGL.Images
       images={symbols}
@@ -80,6 +116,7 @@ function Basemap(props) {
         style={useMapSymbology.getMapSymbology().polygon}
       />
     </MapboxGL.ShapeSource>
+
     {/* Selected Features Layer */}
     <MapboxGL.ShapeSource
       id='spotsNotSelectedSource'
@@ -104,6 +141,7 @@ function Basemap(props) {
         style={useMapSymbology.getMapSymbology().polygonSelected}
       />
     </MapboxGL.ShapeSource>
+
     {/* Draw Layer */}
     <MapboxGL.ShapeSource
       id='drawFeatures'
@@ -128,6 +166,7 @@ function Basemap(props) {
         style={useMapSymbology.getMapSymbology().polygonDraw}
       />
     </MapboxGL.ShapeSource>
+
     {/* Edit Layer */}
     <MapboxGL.ShapeSource
       id='editFeatureVertex'
@@ -140,6 +179,7 @@ function Basemap(props) {
         style={useMapSymbology.getMapSymbology().pointEdit}
       />
     </MapboxGL.ShapeSource>
+
   </MapboxGL.MapView>;
 }
 
@@ -160,5 +200,9 @@ export const OSMBasemap = React.forwardRef((props, ref) => (
 ));
 
 export const CustomBasemap = React.forwardRef((props, ref) => (
+  <Basemap {...props} forwardedRef={ref}/>
+));
+
+export const ImageBasemap = React.forwardRef((props, ref) => (
   <Basemap {...props} forwardedRef={ref}/>
 ));

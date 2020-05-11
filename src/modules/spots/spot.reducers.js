@@ -32,7 +32,6 @@ export const spotReducer = (state = initialState, action) => {
         spots: action.spots,
       };
     case spotReducers.CLEAR_SELECTED_SPOTS:
-      console.log('CLEAR_SELECTED_SPOTS');
       return {
         ...state,
         selectedSpots: [],

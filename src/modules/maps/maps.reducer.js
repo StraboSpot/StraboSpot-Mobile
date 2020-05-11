@@ -2,6 +2,7 @@ import {mapReducers, basemaps} from './maps.constants';
 
 const initialState = {
   currentBasemap: basemaps.mapboxOutdoors,
+  currentImageBasemap: undefined,
   offlineMaps: {},
   customMaps: [],
   vertexStartCoords: undefined,
@@ -10,16 +11,27 @@ const initialState = {
 
 export const mapReducer = (state = initialState, action) => {
   switch (action.type) {
-    case mapReducers.ADD_CUSTOM_MAPS_FROM_DEVICE:
+    case mapReducers.ADD_MAPS_FROM_DEVICE:
       return {
         ...state,
-        customMaps: action.customMaps,
+        [action.field]: action.maps,
       };
+    case mapReducers.CLEAR_MAPS:
+    return {
+      ...state,
+      offlineMaps: {},
+      customMaps: [],
+    };
     case mapReducers.CURRENT_BASEMAP:
       // console.log('Current Basemap in Reducer', action.basemap);
       return {
         ...state,
         currentBasemap: action.basemap,
+      };
+    case mapReducers.CURRENT_IMAGE_BASEMAP:
+    return {
+        ...state,
+        currentImageBasemap: action.currentImageBasemap,
       };
     case mapReducers.CUSTOM_MAPS:
       console.log('Setting custom maps: ', action.customMaps);

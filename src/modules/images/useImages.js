@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {Alert, Platform} from 'react-native';
 import ImagePicker from 'react-native-image-picker';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -46,31 +46,31 @@ const useImages = () => {
     const downloadImageAndSave = async (imageId) => {
       const imageURI = 'https://strabospot.org/pi/' + imageId;
       // return new Promise((resolve, reject) => {
-        return RNFetchBlob
-          .config({path: imagesDirectory + '/' + imageId + '.jpg'})
-          .fetch('GET', imageURI, {})
-          .then((res) => {
-            if (res.respInfo.status === 404) {
-              imageCount++;
-              imagesFailedCount++;
-              console.log('Error on', imageId);  // Android Error: RNFetchBlob request error: url == nullnull
-              return RNFetchBlob.fs.unlink(res.data).then(() => {
-                console.log('Failed image removed', imageId);
-                return Promise.reject('404 status');
-              });
-            }
-            else {
-              imageCount++;
-              // imageFiles.push(res.path());
-              console.log(imageCount, 'File saved to', res.path());
-              // return convertImageSize(res.path());
-            }
-          })
-          .catch((errorMessage, statusCode) => {
+      return RNFetchBlob
+        .config({path: imagesDirectory + '/' + imageId + '.jpg'})
+        .fetch('GET', imageURI, {})
+        .then((res) => {
+          if (res.respInfo.status === 404) {
             imageCount++;
-            console.log('Error on', imageId, ':', errorMessage, statusCode);  // Android Error: RNFetchBlob request error: url == nullnull
-            return Promise.reject();
-          });
+            imagesFailedCount++;
+            console.log('Error on', imageId);  // Android Error: RNFetchBlob request error: url == nullnull
+            return RNFetchBlob.fs.unlink(res.data).then(() => {
+              console.log('Failed image removed', imageId);
+              return Promise.reject('404 status');
+            });
+          }
+          else {
+            imageCount++;
+            // imageFiles.push(res.path());
+            console.log(imageCount, 'File saved to', res.path());
+            // return convertImageSize(res.path());
+          }
+        })
+        .catch((errorMessage, statusCode) => {
+          imageCount++;
+          console.log('Error on', imageId, ':', errorMessage, statusCode);  // Android Error: RNFetchBlob request error: url == nullnull
+          return Promise.reject();
+        });
       // });
     };
 
@@ -88,13 +88,21 @@ const useImages = () => {
           console.log('Image removed', imageId);
           imagesFailedArr.push(imageId);
         });
-      }).finally( () => {
+      }).finally(() => {
         dispatch({type: homeReducers.REMOVE_LAST_STATUS_MESSAGE});
         if (imagesFailedCount > 0) {
-          dispatch({type: homeReducers.ADD_STATUS_MESSAGE, statusMessage: 'Downloaded Images ' + imageCount + '/' + neededImageIds.length
-              + '\nFailed Images ' + imagesFailedCount + '/' + neededImageIds.length});
+          dispatch({
+            type: homeReducers.ADD_STATUS_MESSAGE,
+            statusMessage: 'Downloaded Images ' + imageCount + '/' + neededImageIds.length
+              + '\nFailed Images ' + imagesFailedCount + '/' + neededImageIds.length,
+          });
         }
-        else dispatch({type:  homeReducers.ADD_STATUS_MESSAGE, statusMessage: 'Downloaded Images: ' + imageCount + '/' + neededImageIds.length});
+        else {
+          dispatch({
+            type: homeReducers.ADD_STATUS_MESSAGE,
+            statusMessage: 'Downloaded Images: ' + imageCount + '/' + neededImageIds.length,
+          });
+        }
       });
       promises.push(promise);
     });
@@ -102,7 +110,8 @@ const useImages = () => {
       if (imagesFailedCount > 0) {
         //downloadErrors = true;
         dispatch({type: homeReducers.REMOVE_LAST_STATUS_MESSAGE});
-        dispatch({type:  homeReducers.ADD_STATUS_MESSAGE, statusMessage: 'Image Downloads Failed: ' + imagesFailedCount});
+        dispatch(
+          {type: homeReducers.ADD_STATUS_MESSAGE, statusMessage: 'Image Downloads Failed: ' + imagesFailedCount});
         console.warn('Image Downloads Failed: ' + imagesFailedCount);
       }
       else  {
@@ -443,7 +452,7 @@ const useImages = () => {
           .catch(function (err) {
             if (err !== 'already exists') {
               imagesUploadFailedCount++;
-              console.warn(err)
+              console.warn(err);
             }
           })
           .finally(function () {
@@ -494,7 +503,7 @@ const useImages = () => {
           'JPEG',
           100,
           0,
-          devicePath + imagesResizeTemp
+          devicePath + imagesResizeTemp,
         )
           .then(response => {
             response.name = imageProps.id.toString();

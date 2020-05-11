@@ -20,11 +20,12 @@ export const persistConfig = {
 const notebookConfig = {
   key: 'notebook',
   storage: AsyncStorage,
-  blacklist: ['visibleNotebookPagesStack'],
+  // blacklist: ['visibleNotebookPagesStack'],
 };
 
 const loggerMiddleware = createLogger({
   predicate: () => process.env.NODE_ENV === 'development',
+  collapsed: (getState, action, logEntry) => !logEntry.error,
 });
 
 const appReducer = combineReducers({

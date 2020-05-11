@@ -106,7 +106,6 @@ export const projectsReducer = (state = initialState, action) => {
       };
     }
     case projectReducers.BACKUP_DIRECTORY_EXISTS:
-      console.log(action.bool);
       return {
         ...state,
         deviceBackUpDirectoryExists: action.bool,

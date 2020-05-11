@@ -25,7 +25,6 @@ export const mainMenuPanelReducer = (state = initialState, action) => {
         settingsPageVisible: action.name,
       };
     case settingPanelReducers.SET_SIDE_PANEL_VISIBLE:
-      console.log('Side Panel Bool', action.bool);
       return {
         ...state,
         isSidePanelVisible: action.bool,

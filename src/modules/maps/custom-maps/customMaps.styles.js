@@ -7,9 +7,17 @@ const styles = StyleSheet.create({
     paddingLeft: 7,
     paddingRight: 5,
   },
+  buttonContainer: {
+    padding: 10,
+    marginTop: 10,
+  },
+
   textStyle: {
     fontSize: 14,
     color: '#407ad9',
+  },
+  header: {
+    paddingTop: 20
   },
   headingText: {
     alignItems: 'center',
@@ -25,10 +33,9 @@ const styles = StyleSheet.create({
     width: '90%',
     flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
-    paddingTop: 7,
-    paddingBottom: 3,
-    paddingLeft: 10,
+    // paddingTop: 7,
+    // paddingBottom: 3,
+    // paddingLeft: 10,
   },
   itemSubContainer: {
     width: '90%',
@@ -48,6 +55,14 @@ const styles = StyleSheet.create({
   },
   buttonPadding: {
     paddingLeft: 10,
+  },
+  list: {
+    // flex: 1,
+    // height: 200,
+    borderColor: themes.PRIMARY_ITEM_TEXT_COLOR,
+    paddingLeft: 5,
+    paddingBottom: 10,
+    paddingTop: 10,
   },
   switch: {
     flex: 1,
@@ -73,6 +88,14 @@ const styles = StyleSheet.create({
   divider: {
     height: 30,
     justifyContent: 'center',
+  },
+  sectionsContainer: {
+    // flex: 1,
+    margin: 10,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 5
+    // height: 200
   },
   submitButton: {
     width: '90%',

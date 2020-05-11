@@ -1,7 +1,7 @@
-import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {randomNames} from '../../assets/test-data/default-names';
 import {getNewId, isEmpty} from '../../shared/Helpers';
+import proj4 from 'proj4';
 
 // Constants
 import {projectReducers} from '../project/project.constants';
@@ -9,13 +9,13 @@ import {spotReducers} from './spot.constants';
 
 // Hooks
 import useImagesHook from '../images/useImages';
-import useProjectHook from '../project/useProject';
 import useServerRequestsHook from '../../services/useServerRequests';
 import {homeReducers} from '../home/home.constants';
 
 const useSpots = (props) => {
   const dispatch = useDispatch();
   const spots = useSelector(state => state.spot.spots);
+  const currentImageBasemap = useSelector(state => state.map.currentImageBasemap);
   const datasets = useSelector(state => state.project.datasets);
 
   const [useImages] = useImagesHook();
@@ -33,6 +33,12 @@ const useSpots = (props) => {
     newSpot.properties.modified_timestamp = Date.now();
     newSpot.properties.viewed_timestamp = Date.now();
     newSpot.properties.name = randomName;
+    if (currentImageBasemap) {
+      //newSpot.properties.lat = newSpot.geometry.coordinates[0];
+      //newSpot.properties.lng = newSpot.geometry.coordinates[1];
+      newSpot.properties.image_basemap = currentImageBasemap.id;
+      newSpot = convertFeatureGeometryToImagePixels(newSpot);
+    }
     console.log('Creating new Spot:', newSpot);
     await dispatch({type: spotReducers.ADD_SPOT, spot: newSpot});
     const currentDataset = Object.values(datasets).find(dataset => dataset.current);
@@ -42,9 +48,7 @@ const useSpots = (props) => {
       datasetId: currentDataset.id,
       spotIds: [newSpot.properties.id],
     });
-
     console.log('Finished creating new Spot. All Spots: ', spots);
-
     return newSpot;
   };
 
@@ -58,7 +62,8 @@ const useSpots = (props) => {
           console.log(dataset.id);
           console.log(dataset.spotIds.filter(spotId => id !== spotId));
           const filteredLSpotIdList = dataset.spotIds.filter(spotId => id !== spotId);
-          dispatch({type: projectReducers.DATASETS.DELETE_SPOT_ID, filteredList: filteredLSpotIdList, datasetId: dataset.id});
+          dispatch(
+            {type: projectReducers.DATASETS.DELETE_SPOT_ID, filteredList: filteredLSpotIdList, datasetId: dataset.id});
           dispatch({type: spotReducers.DELETE_SPOT, id: id});
         }
       }
@@ -100,20 +105,44 @@ const useSpots = (props) => {
     else return Promise.reject('No Spots!');
   };
 
+  const getAllImageBaseMaps = () => {
+    const activeSpotObjs = getActiveSpotsObj();
+    const allImageBaseMaps = new Set();
+    const allImagesSet = new Set();
+    var currentSpot, currentImage;
+    for (var key in activeSpotObjs) {
+      currentSpot = activeSpotObjs[key];
+      if (!isEmpty(currentSpot.properties.images)) {
+        for (var imageKey in Object.keys(currentSpot.properties.images)) {
+          currentImage = currentSpot.properties.images[imageKey];
+          allImagesSet.add(currentImage);
+          if (currentImage != null && currentImage.annotated && currentImage.annotated != undefined) {
+            allImageBaseMaps.add(currentImage);
+          }
+        }
+      }
+    }
+    return allImageBaseMaps;
+  };
   // Get only the Spots in the active Datasets
   const getActiveSpotsObj = () => {
     const activeSpotIds = Object.values(datasets).flatMap(dataset => dataset.active ? dataset.spotIds || [] : []);
     let activeSpots = {};
     activeSpotIds.map(spotId => {
-     if (spots[spotId]) activeSpots = {...activeSpots, [spotId]: spots[spotId]};
-     else console.log('Missing Spot', spotId);
+      if (spots[spotId]) activeSpots = {...activeSpots, [spotId]: spots[spotId]};
+      else console.log('Missing Spot', spotId);
     });
     return activeSpots;
   };
 
-  const getMappableSpots = () => {
+  const getMappableSpots = (imageBasemap) => {
     const allSpotsCopy = JSON.parse(JSON.stringify(Object.values(getActiveSpotsObj())));
-    return allSpotsCopy.filter(spot => spot.geometry && !spot.properties.strat_section_id);
+    if (imageBasemap) {
+      return allSpotsCopy.filter(
+        spot => spot.geometry && !spot.properties.strat_section_id && spot.properties.image_basemap === imageBasemap);
+    }
+    return allSpotsCopy.filter(
+      spot => spot.geometry && !spot.properties.strat_section_id && !spot.properties.image_basemap);
   };
 
   const getSpotById = (spotId) => {
@@ -128,6 +157,33 @@ const useSpots = (props) => {
     return foundSpots;
   };
 
+  // Convert WGS84 to image x,y pixels, assuming x,y are web mercator
+  const convertFeatureGeometryToImagePixels = (feature) => {
+    var imageX,imageY;
+    let calculatedCoordinates = [];
+    if (feature.geometry.type === 'Point') {
+      [imageX,imageY] = proj4('EPSG:4326', 'EPSG:3857', feature.geometry.coordinates);
+      feature.geometry.coordinates = [imageX / 100,imageY / 100];
+    }
+    else if (feature.geometry.type === 'Polygon') {
+        for (const subArray of feature.geometry.coordinates){
+          for (const innerSubArray of subArray){
+            [imageX,imageY] = proj4('EPSG:4326', 'EPSG:3857', innerSubArray);
+            calculatedCoordinates.push([imageX / 100,imageY / 100]);
+          }
+        }
+        feature.geometry.coordinates = [calculatedCoordinates];
+     }
+     else { // LineString
+        for (const subArray of feature.geometry.coordinates){
+          [imageX,imageY] = proj4('EPSG:4326', 'EPSG:3857', subArray);
+          calculatedCoordinates.push([imageX / 100,imageY / 100]);
+        }
+        feature.geometry.coordinates = calculatedCoordinates;
+      }
+    return feature;
+  };
+
   return [{
     createSpot: createSpot,
     deleteSpot: deleteSpot,
@@ -137,6 +193,7 @@ const useSpots = (props) => {
     getMappableSpots: getMappableSpots,
     getSpotById: getSpotById,
     getSpotsByIds: getSpotsByIds,
+    getAllImageBaseMaps: getAllImageBaseMaps,
   }];
 };
 

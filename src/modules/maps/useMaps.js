@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf/index';
 import Geolocation from '@react-native-community/geolocation';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import proj4 from 'proj4';
 
 import {isEmpty} from '../../shared/Helpers';
 import useSpotsHook from '../spots/useSpots';
@@ -10,6 +11,7 @@ import {spotReducers} from '../spots/spot.constants';
 
 const useMaps = (props) => {
   const dispatch = useDispatch();
+  const currentImageBasemap = useSelector(state => state.map.currentImageBasemap);
   const [useSpots] = useSpotsHook();
 
   // Create a point feature at the current location
@@ -40,12 +42,14 @@ const useMaps = (props) => {
 
   // Get selected and not selected Spots to display when not editing
   const getDisplayedSpots = (selectedSpots) => {
-    const mappableSpots = useSpots.getMappableSpots();      // Spots with geometry
+    var mappableSpots = useSpots.getMappableSpots();      // Spots with geometry
+    // if image_basemap, then filter spots by imageBasemap id
+    if (currentImageBasemap) mappableSpots = useSpots.getMappableSpots(currentImageBasemap.id);
+    // Filter out Spots on an strat section
+    var displayedSpots = mappableSpots.filter(spot => !spot.properties.strat_section);
+    // Filter out Spots on an image_basemap
+    if (!currentImageBasemap) displayedSpots = displayedSpots.filter(spot => !spot.properties.image_basemap);
     console.log('Mappable Spots', selectedSpots);
-
-    // Filter out Spots on an image basemap
-    const displayedSpots = mappableSpots.filter(
-      spot => !spot.properties.image_basemap && !spot.properties.strat_section);
 
     let mappedFeatures = [];
     displayedSpots.map(spot => {
@@ -65,12 +69,10 @@ const useMaps = (props) => {
       else mappedFeatures.push(JSON.parse(JSON.stringify(spot)));
     });
 
-    console.log('mp', mappedFeatures);
-
     // Separate selected Spots and not selected Spots (Point Spots need to in both
     // selected and not selected since the selected symbology is a halo around the point)
     const selectedIds = selectedSpots.map(sel => sel.properties.id);
-    const selectedDisplayedSpots = mappedFeatures.filter(spot => selectedIds.includes(spot.properties.id));
+    const selectedDisplayedSpots = displayedSpots.filter(spot => selectedIds.includes(spot.properties.id));
     const notSelectedDisplayedSpots = mappedFeatures.filter(spot => !selectedIds.includes(spot.properties.id) ||
       spot.geometry.type === 'Point');
 
@@ -79,10 +81,60 @@ const useMaps = (props) => {
     return [selectedDisplayedSpots, notSelectedDisplayedSpots];
   };
 
-  const setSelectedSpot = spotToSetAsSelected => {
+  const setSelectedSpot = (spotToSetAsSelected) => {
     console.log('Set selected Spot:', spotToSetAsSelected);
-    getDisplayedSpots(isEmpty(spotToSetAsSelected) ? [] : [{...spotToSetAsSelected}]);
+    let [selectedSpots, notSelectedSpots] = getDisplayedSpots(
+      isEmpty(spotToSetAsSelected) ? [] : [{...spotToSetAsSelected}]);
     dispatch({type: spotReducers.SET_SELECTED_SPOT, spot: spotToSetAsSelected});
+    return [selectedSpots, notSelectedSpots];
+  };
+
+  /* getCoordQuad method identifies the coordinate span for the
+   for the image basemap.
+   */
+  const getCoordQuad = (imageBasemapProps) => {
+    // identify the [lat,lng] corners of the image basemap
+    var bottomLeft = [0, 0];
+    var bottomRight = proj4('EPSG:3857', 'EPSG:4326', [imageBasemapProps.width * 100, 0]);
+    var topRight = proj4('EPSG:3857', 'EPSG:4326', [imageBasemapProps.width * 100, imageBasemapProps.height * 100]);
+    var topLeft = proj4('EPSG:3857', 'EPSG:4326', [0, imageBasemapProps.height * 100]);
+    var coordQuad = [topLeft, topRight, bottomRight, bottomLeft];
+    console.log('coordQuad', coordQuad);
+    return coordQuad;
+  };
+
+  // Convert image x,y pixels to WGS84, assuming x,y are web mercator
+  const convertImagePixelsToLatLong = (features) => {
+    let convertedFeatures = [];
+    features.forEach(feature => {
+      if (feature.geometry.type === 'Point') {
+        const coords = feature.geometry.coordinates;
+        feature.geometry.coordinates = proj4('EPSG:3857', 'EPSG:4326', [coords[0] * 100, coords[1] * 100]);
+        convertedFeatures.push(feature);
+      }
+      else if (feature.geometry.type === 'Polygon') {
+          let calculatedCoordinates = [];
+          for (const subArray of feature.geometry.coordinates){
+            for (const innerSubArray of subArray){
+              let [x,y] = proj4('EPSG:3857', 'EPSG:4326', [innerSubArray[0] * 100, innerSubArray[1] * 100]);
+              calculatedCoordinates.push([x,y]);
+            }
+          }
+          feature.geometry.coordinates = [calculatedCoordinates];
+          convertedFeatures.push(feature);
+       }
+       else {
+          let calculatedCoordinates = [];
+          for (const subArray of feature.geometry.coordinates){
+            let [x,y] = proj4('EPSG:3857', 'EPSG:4326', [subArray[0] * 100, subArray[1] * 100]);
+            calculatedCoordinates.push([x,y]);
+          }
+          feature.geometry.coordinates = calculatedCoordinates;
+          convertedFeatures.push(feature);
+        }
+    });
+    console.log('converted features', convertedFeatures);
+    return convertedFeatures;
   };
 
   return [{
@@ -90,7 +142,8 @@ const useMaps = (props) => {
     getDisplayedSpots: getDisplayedSpots,
     setPointAtCurrentLocation: setPointAtCurrentLocation,
     setSelectedSpot: setSelectedSpot,
-    // mapProps: mapProps,
+    getCoordQuad: getCoordQuad,
+    convertImagePixelsToLatLong: convertImagePixelsToLatLong,
   }];
 };
 
