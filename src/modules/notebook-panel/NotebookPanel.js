@@ -6,7 +6,7 @@ import NotebookFooter from './notebook-footer/NotebookFooter';
 import Overview from './Overview';
 import * as SharedUI from '../../shared/ui/index';
 import MeasurementsPage from '../measurements/Measurements';
-import MeasurementDetailPage from '../measurements/MeasurementDetail';
+import MeasurementDetail from '../measurements/MeasurementDetail';
 import NotesPage from '../notes/Notes';
 import SamplesPage from '../samples/SamplesNotebook';
 import {notebookReducers, NotebookPages} from './notebook.constants';
@@ -90,7 +90,7 @@ const NotebookPanel = props => {
               {props.notebookPageVisible === NotebookPages.OVERVIEW ||
               props.notebookPageVisible === undefined ? <Overview/> : null}
               {props.notebookPageVisible === NotebookPages.MEASUREMENT ? <MeasurementsPage/> : null}
-              {props.notebookPageVisible === NotebookPages.MEASUREMENTDETAIL ? <MeasurementDetailPage/> : null}
+              {props.notebookPageVisible === NotebookPages.MEASUREMENTDETAIL ? <MeasurementDetail/> : null}
               {props.notebookPageVisible === NotebookPages.NOTE ? <NotesPage/> : null}
               {props.notebookPageVisible === NotebookPages.SAMPLE ? <SamplesPage/> : null}
             </View>

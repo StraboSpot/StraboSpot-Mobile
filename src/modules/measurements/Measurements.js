@@ -25,7 +25,7 @@ const MeasurementsPage = (props) => {
   const sectionTypes = {
     PLANAR: 'Planar Measurements',
     LINEAR: 'Linear Measurements',
-    PLANARLINEAR: 'Planar + Linear Measurements',
+    PLANARLINEAR: 'P + L Measurements',
   };
 
   const getSectionData = (sectionType) => {
