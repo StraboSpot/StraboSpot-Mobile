@@ -171,18 +171,12 @@ const useImages = () => {
     });
   };
 
-  const getImageThumbnailURIs = async (spotsWithImages) => {
+  const getImageThumbnailURI = async (image) => {
     try {
-      let imageThumbnailURIs = {};
-      await Promise.all(spotsWithImages.map(async (spot) => {
-        await Promise.all(spot.properties.images.map(async (image) => {
-          const imageUri = getLocalImageURI(image.id);
-          const createResizedImageProps = [imageUri, 200, 200, 'JPEG', 100, 0];
-          const resizedImage = await ImageResizer.createResizedImage(...createResizedImageProps);
-          imageThumbnailURIs = {...imageThumbnailURIs, [image.id]: resizedImage.uri};
-        }));
-      }));
-      return imageThumbnailURIs;
+      const imageUri = getLocalImageURI(image.id);
+      const createResizedImageProps = [imageUri, 200, 200, 'JPEG', 100, 0];
+      const resizedImage = await ImageResizer.createResizedImage(...createResizedImageProps)
+      return resizedImage.uri;
     }
     catch (err) {
       console.error('Error creating thumbnails', err);
@@ -279,7 +273,8 @@ const useImages = () => {
     getLocalImageURI: getLocalImageURI,
     getImagesFromCameraRoll: getImagesFromCameraRoll,
     getImageHeightAndWidth: getImageHeightAndWidth,
-    getImageThumbnailURIs: getImageThumbnailURIs,
+    getImageThumbnailURI: getImageThumbnailURI,
+    // getImageThumbnailURIs: getImageThumbnailURIs,
     launchCameraFromNotebook: launchCameraFromNotebook,
     saveFile: saveFile,
     setAnnotation: setAnnotation,

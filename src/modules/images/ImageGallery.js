@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import {Alert, FlatList, Pressable, SectionList, Text, View} from 'react-native';
+import {Alert, FlatList, SectionList, Text, View} from 'react-native';
 
-import FastImage from 'react-native-fast-image';
+import {Icon, Image} from 'react-native-elements';
 import {useDispatch, useSelector} from 'react-redux';
 
+import Placeholder from '../../assets/images/noimage.jpg';
 import commonStyles from '../../shared/common.styles';
 import {isEmpty} from '../../shared/Helpers';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
@@ -29,28 +30,38 @@ const ImageGallery = (props) => {
   const sortedView = useSelector(state => state.mainMenu.sortedView);
   const spots = useSelector(state => state.spot.spots);
 
-  const [isReady, setIsReady] = useState(false);
-  const [imageThumbnails, setImageThumbnails] = useState({});
+  const getInitialPlaceholder = () => {
+    let tempObj;
+    const spotsWithImages = useSpots.getSpotsWithImages();
+    spotsWithImages.map(spot => {
+      spot.properties.images.map(async (image) => {
+        tempObj = {...tempObj, [image.id]: null};
+      });
+    })
+    return tempObj;
+  }
+
+  const [imageThumbnailURIs, setImageThumbnailURIs] = useState(getInitialPlaceholder());
   const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    const spotsWithImages = useSpots.getSpotsWithImages();
+    let tempObj = {};
+    // spotsWithImages.map(spot => {
+    //   spot.properties.images.map(async (image) => {
+    //     tempObj = {...tempObj, [image.id]: null};
+    //   });
+    // })
+    setImageThumbnailURIs(tempObj)
+  }, []);
 
   useEffect(() => {
     getImageThumbnailURIs().catch(err => console.error(err));
   }, []);
 
-  const getImageThumbnailURIs = async () => {
-    try {
-      const spotsWithImages = useSpots.getSpotsWithImages();
-      const imageThumbnailURIsTemp = await useImages.getImageThumbnailURIs(spotsWithImages);
-      setImageThumbnails(imageThumbnailURIsTemp);
-      setIsReady(true);
-      setIsError(false);
-    }
-    catch (err) {
-      console.error('Error in getImageThumbnailURIs', err);
-      setIsError(true);
-      setIsReady(true);
-    }
-  };
+  useEffect(() => {
+    console.log('Image thumbnails updated', imageThumbnailURIs);
+  }, [imageThumbnailURIs]);
 
   const handleImagePressed = (image) => {
     dispatch(setLoadingStatus({view: 'home', bool: true}));
@@ -70,6 +81,23 @@ const ImageGallery = (props) => {
       .catch((e) => console.error('Image not found', e));
   };
 
+  const getImageThumbnailURIs = async () => {
+    try {
+      const spotsWithImages = useSpots.getSpotsWithImages();
+      spotsWithImages.map(async (spot) => {
+        spot.properties.images.map(async (image) => {
+          const resizedImage = await useImages.getImageThumbnailURI(image);
+          setImageThumbnailURIs(prevState => ({...prevState, [image.id]: resizedImage}));
+        });
+      });
+    }
+    catch (err) {
+      console.error('Error creating thumbnails', err);
+      setIsError(true);
+      throw Error(err);
+    }
+  };
+
   const renderImagesInSpot = (images) => {
     return (
       <FlatList
@@ -84,17 +112,13 @@ const ImageGallery = (props) => {
   const renderImage = (image) => {
     return (
       <View style={imageStyles.thumbnailContainer}>
-        <Pressable onPress={() => handleImagePressed(image)}>
-          {({pressed}) => (
-            <FastImage
-              style={[imageStyles.thumbnail, {opacity: pressed ? 0.5 : 1}]}
-              source={{
-                uri: imageThumbnails[image.id],
-                priority: FastImage.priority.high,
-              }}
-            />
-          )}
-        </Pressable>
+        <Image
+          style={imageStyles.thumbnail}
+          onPress={() => handleImagePressed(image)}
+          source={imageThumbnailURIs[image.id] === null ? require('../../assets/images/noimage.jpg') : {uri: imageThumbnailURIs[image.id]}}
+          // PlaceholderContent={<Loading style={{backgroundColor: 'transparent'}} size={20}/>}
+          // placeholderStyle={{backgroundColor: 'transparent'}}
+        />
       </View>
     );
   };
@@ -114,6 +138,13 @@ const ImageGallery = (props) => {
       </View>
     );
   };
+
+  const renderError = () => (
+    <View style={{paddingTop: 75}}>
+      <Icon name={'alert-circle-outline'} type={'ionicon'} size={100}/>
+      <Text style={[commonStyles.noValueText, {paddingTop: 50}]}>Problem getting thumbnail images...</Text>
+    </View>
+  );
 
   const renderSpotsWithImages = () => {
     let sortedSpotsWithImages = useSpots.getSpotsWithImagesSortedReverseChronologically();
@@ -149,9 +180,8 @@ const ImageGallery = (props) => {
   return (
     <React.Fragment>
       {isEmpty(useSpots.getSpotsWithImages()) ? renderNoImagesText()
-        : !isReady ? <Loading style={{backgroundColor: 'transparent'}}/>
-          : !isError ? renderSpotsWithImages()
-            : <Text style={[commonStyles.noValueText, {paddingTop: 75}]}>Problem getting thumbnail images...</Text>}
+        : !isError ? renderSpotsWithImages()
+          : renderError()}
     </React.Fragment>
   );
 };
