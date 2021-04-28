@@ -73,6 +73,7 @@ import homeStyles from './home.style';
 import LeftSideButtons from './LeftSideButtons';
 import RightSideButtons from './RightSideButtons';
 import useHomeHook from './useHome';
+import ThreeDStrcturesModal from '../three-d-structures/ThreeDStrcturesModal';
 
 const {State: TextInputState} = TextInput;
 
@@ -471,6 +472,9 @@ const Home = () => {
     }
     if (modalVisible === MODALS.NOTEBOOK_MODALS.FABRIC && isNotebookPanelVisible && !isEmpty(selectedSpot)) {
       return <FabricModal close={() => dispatch(setModalVisible({modal: null}))}/>;
+    }
+    if (modalVisible === MODALS.NOTEBOOK_MODALS.THREE_D_STRUCTURES && isNotebookPanelVisible && !isEmpty(selectedSpot)) {
+      return <ThreeDStrcturesModal close={() => dispatch((setModalVisible({modal: null})))}/>;
     }
   };
 

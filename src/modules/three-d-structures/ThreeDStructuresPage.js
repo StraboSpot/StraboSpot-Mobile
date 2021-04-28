@@ -11,6 +11,8 @@ import ListEmptyText from '../../shared/ui/ListEmptyText';
 import SectionDividerWithRightButton from '../../shared/ui/SectionDividerWithRightButton';
 import uiStyles from '../../shared/ui/ui.styles';
 import {LABEL_DICTIONARY} from '../form';
+import {MODALS} from '../home/home.constants';
+import {setModalValues, setModalVisible} from '../home/home.slice';
 import {NOTEBOOK_PAGES} from '../notebook-panel/notebook.constants';
 import {setNotebookPageVisible} from '../notebook-panel/notebook.slice';
 import ReturnToOverviewButton from '../notebook-panel/ui/ReturnToOverviewButton';
@@ -38,9 +40,12 @@ const ThreeDStructuresPage = () => {
   }, [spot]);
 
   const add3dStructure = (type) => {
-    const new3dStructure = {id: getNewId(), type: type};
-    setSelected3dStructure(new3dStructure);
-    setIsDetailView(true);
+    console.log(type);
+    dispatch(setModalValues({type: type}));
+    dispatch(setModalVisible({modal: MODALS.NOTEBOOK_MODALS.THREE_D_STRUCTURES}));
+    // const new3dStructure = {id: getNewId(), type: type};
+    // setSelected3dStructure(new3dStructure);
+    // setIsDetailView(true);
   };
 
   const edit3dStructure = (threeDStructure) => {

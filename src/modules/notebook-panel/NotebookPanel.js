@@ -73,6 +73,9 @@ const NotebookPanel = (props) => {
     else if (page === SECONDARY_NOTEBOOK_PAGES.FABRICS) {
       dispatch(setModalVisible({modal: MODALS.NOTEBOOK_MODALS.FABRIC}));
     }
+    else if (page === SECONDARY_NOTEBOOK_PAGES.THREE_D_STRUCTURES) {
+      dispatch((setModalVisible({modal: MODALS.NOTEBOOK_MODALS.THREE_D_STRUCTURES})));
+    }
     else dispatch(setModalVisible({modal: null}));
   };
 
