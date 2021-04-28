@@ -77,5 +77,11 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     fontSize: themes.SMALL_TEXT_SIZE,
   },
+  mainButtonsContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
 });
 export default styles;

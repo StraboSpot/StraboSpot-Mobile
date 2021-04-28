@@ -6,12 +6,14 @@ import {ButtonGroup} from 'react-native-elements';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getNewId, isEmpty} from '../../shared/Helpers';
-import {PRIMARY_TEXT_COLOR} from '../../shared/styles.constants';
+import SaveButton from '../../shared/SaveButton';
+import {PRIMARY_ACCENT_COLOR, PRIMARY_TEXT_COLOR} from '../../shared/styles.constants';
 import DragAnimation from '../../shared/ui/DragAmination';
 import Modal from '../../shared/ui/modal/Modal';
 import uiStyles from '../../shared/ui/ui.styles';
-import {LABEL_DICTIONARY, useFormHook} from '../form';
+import {Form, LABEL_DICTIONARY, useFormHook} from '../form';
 import {setModalValues} from '../home/home.slice';
+import {editedSpotProperties} from '../spots/spots.slice';
 import FoldStructure from './FoldStructure';
 
 const ThreeDStructuresModal = (props) => {
@@ -20,8 +22,10 @@ const ThreeDStructuresModal = (props) => {
   const formRef = useRef(null);
   const dispatch = useDispatch();
   const modalValues = useSelector(state => state.home.modalValues);
+  const spot = useSelector(state => state.spot.selectedSpot);
 
   const [selectedTypeIndex, setSelectedTypeIndex] = useState(null);
+  const [choicesViewKey, setChoicesViewKey] = useState(null);
   const [survey, setSurvey] = useState({});
   const [choices, setChoices] = useState({});
 
@@ -74,13 +78,14 @@ const ThreeDStructuresModal = (props) => {
             survey={survey}
             choices={choices}
             getLabel={getLabel}
+            setChoicesViewKey={setChoicesViewKey}
             formName={['_3d_structures', types[selectedTypeIndex]]}
             formProps={formProps}
           />
         )}
       </React.Fragment>
-  )
-    ;
+    )
+      ;
   };
 
   const renderNotebookThreeDStructuresModalContent = () => {
@@ -100,13 +105,52 @@ const ThreeDStructuresModal = (props) => {
             console.log('FORM PROPS (3dSt', formProps);
             return (
               <View style={{flex: 1}}>
-                {renderForm(formProps)}
+                {choicesViewKey ? renderSubform(formProps) : renderForm(formProps)}
               </View>
             );
           }}
         </Formik>
+        {choicesViewKey ? (
+            <Button
+              titleStyle={{color: PRIMARY_ACCENT_COLOR}}
+              title={'Done'}
+              type={'save'}
+              onPress={() => setChoicesViewKey(null)}
+            />
+          )
+          : <SaveButton title={'Save Fabric'} onPress={save3DStructure}/>}
       </Modal>
     );
+  };
+
+  const renderSubform = (formProps) => {
+    const relevantFields = useForm.getRelevantFields(survey, choicesViewKey);
+    return (
+      <Form {...{
+        formName: ['_3d_structures', formRef.current?.values?.type],
+        surveyFragment: relevantFields, ...formProps,
+      }}/>
+    );
+  };
+
+  const save3DStructure = async () => {
+    try {
+      await formRef.current.submitForm();
+      if (useForm.hasErrors(formRef.current)) {
+        useForm.showErrors(formRef.current);
+        throw Error;
+      }
+      let edited3dStructureData = formRef.current.values;
+      console.log('Saving 3dStructure data to Spot ...');
+      let edited3DStructuresData = spot.properties._3d_structures
+        ? JSON.parse(JSON.stringify(spot.properties._3d_structures))
+        : [];
+      edited3DStructuresData.push({...edited3dStructureData, id: getNewId()});
+      dispatch(editedSpotProperties({field: '_3d_structures', value: edited3DStructuresData}));
+    }
+    catch (err) {
+      console.log('Error submitting form', err);
+    }
   };
 
   if (Platform.OS === 'android') return renderNotebookThreeDStructuresModalContent();

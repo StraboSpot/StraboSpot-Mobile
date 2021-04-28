@@ -18,7 +18,7 @@ const MainButtons = (props) => {
         </Text>
         {props.formRef.current?.values[key] && (
             <Text style={{...formStyles.formButtonSelectedTitle, fontWeight: 'bold'}}>
-               {truncateText(props.getLabel(props.formRef.current.values[key]), 23)}
+               {truncateText(props.getLabel(props.formRef.current.values[key]))}
             </Text>
         )}
       </View>
@@ -26,15 +26,15 @@ const MainButtons = (props) => {
   );
 
   return (
-    <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap'}}>
+    <View style={formStyles.mainButtonsContainer}>
       {props.mainKeys.map((k) => {
         return (
           <Button
             containerStyle={formStyles.formButtonContainer}
-            buttonStyle={{
+            buttonStyle={[{
               ...formStyles.formButton,
               backgroundColor: props.formRef.current?.values[k] ? REACT_NATIVE_ELEMENTS_BLUE : SECONDARY_BACKGROUND_COLOR,
-            }}
+            }, props.buttonStyle]}
             title={() => mainButttonsText(k)}
             type={'outline'}
             onPress={() => props.setChoicesViewKey(k)}

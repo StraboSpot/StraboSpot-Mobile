@@ -1,5 +1,4 @@
 import React from 'react';
-import {Text, View} from 'react-native';
 
 import LittleSpacer from '../../shared/ui/LittleSpacer';
 import {Form, MainButtons, useFormHook} from '../form';
@@ -21,7 +20,7 @@ const FoldStructure = (props) => {
         }
       />
       <LittleSpacer/>
-      <MainButtons {...{mainKeys: mainButtonKey, ...props}}/>
+      <MainButtons {...{mainKeys: mainButtonKey, ...props}} buttonStyle={{width: 150, height: 40}} />
     </React.Fragment>
   );
 };
