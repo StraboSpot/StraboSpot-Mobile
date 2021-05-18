@@ -5,8 +5,8 @@ import {Avatar, Button, ListItem} from 'react-native-elements';
 import {useDispatch, useSelector} from 'react-redux';
 
 import commonStyles from '../../shared/common.styles';
-import {isEmpty} from '../../shared/Helpers';
 import * as Helpers from '../../shared/Helpers';
+import {isEmpty} from '../../shared/Helpers';
 import FlatListItemSeparator from '../../shared/ui/FlatListItemSeparator';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
 import SectionDivider from '../../shared/ui/SectionDivider';
@@ -45,23 +45,27 @@ const NotebookPanel = (props) => {
   const dispatch = useDispatch();
   const pageVisible = useSelector(state => state.notebook.visibleNotebookPagesStack.slice(-1)[0]);
   const recentlyViewedSpotIds = useSelector(state => state.spot.recentViews);
+  const isNotebookPanelVisible = useSelector(state => state.notebook.isNotebookPanelVisible);
   const spot = useSelector(state => state.spot.selectedSpot);
   const spots = useSelector(state => state.spot.spots);
   const [textInputAnimate] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    console.log('useEffect Form []');
-    Keyboard.addListener('keyboardDidShow', handleKeyboardDidShow);
-    Keyboard.addListener('keyboardDidHide', handleKeyboardDidHide);
+    if (isNotebookPanelVisible) {
+      console.log('NB Keyboard Listeners Added');
+      Keyboard.addListener('keyboardDidShow', handleKeyboardDidShowNotebook);
+      Keyboard.addListener('keyboardDidHide', handleKeyboardDidHideNotebook);
+    }
     return function cleanup() {
-      Keyboard.removeListener('keyboardDidShow', handleKeyboardDidShow);
-      Keyboard.removeListener('keyboardDidHide', handleKeyboardDidHide);
+      Keyboard.removeListener('keyboardDidShow', handleKeyboardDidShowNotebook);
+      Keyboard.removeListener('keyboardDidHide', handleKeyboardDidHideNotebook);
+      console.log('NB Keyboard Listeners Removed');
     };
-  }, []);
+  }, [isNotebookPanelVisible]);
 
-  const handleKeyboardDidShow = (event) => Helpers.handleKeyboardDidShow(event, TextInputState, textInputAnimate);
+  const handleKeyboardDidShowNotebook = (event) => Helpers.handleKeyboardDidShow(event, TextInputState, textInputAnimate);
 
-  const handleKeyboardDidHide = () => Helpers.handleKeyboardDidHide(textInputAnimate);
+  const handleKeyboardDidHideNotebook = () => Helpers.handleKeyboardDidHide(textInputAnimate);
 
   const onNotebookPageVisible = (page) => {
     dispatch(setNotebookPageVisible(page));
@@ -82,7 +86,7 @@ const NotebookPanel = (props) => {
   const renderNotebookContent = () => {
     return (
       <React.Fragment>
-        <View style={{flex: 1}}>
+        <Animated.View style={{flex: 1, transform: [{translateY: textInputAnimate}]}}>
           <View style={notebookStyles.headerContainer}>
             <NotebookHeader
               closeNotebookPanel={props.closeNotebookPanel}
@@ -90,7 +94,7 @@ const NotebookPanel = (props) => {
               zoomToSpot={props.zoomToSpot}
             />
           </View>
-          <Animated.View style={{...notebookStyles.centerContainer, transform: [{translateY: textInputAnimate}]}}>
+          <View style={{...notebookStyles.centerContainer}}>
             {/*Main Overview Page*/}
             {(!pageVisible || pageVisible === NOTEBOOK_PAGES.OVERVIEW) && <Overview openMainMenu={props.openMainMenu}/>}
 
@@ -109,7 +113,7 @@ const NotebookPanel = (props) => {
 
             {/*Secondary Notebook Pages*/}
             {pageVisible === SECONDARY_NOTEBOOK_PAGES.THREE_D_STRUCTURES && <ThreeDStructuresPage/>}
-            {pageVisible === SECONDARY_NOTEBOOK_PAGES.FABRICS && <FabricsPage/>}
+            {/*{pageVisible === SECONDARY_NOTEBOOK_PAGES.FABRICS && <FabricsPage/>}*/}
             {pageVisible === SECONDARY_NOTEBOOK_PAGES.OTHER_FEATURES && <OtherFeaturesPage/>}
             {/*{pageVisible === SECONDARY_NOTEBOOK_PAGES.RELATIONSHIPS && <PlaceholderPage/>}*/}
             {pageVisible === SECONDARY_NOTEBOOK_PAGES.DATA && <ExternalData/>}
@@ -129,8 +133,8 @@ const NotebookPanel = (props) => {
             {/*{pageVisible === SED_NOTEBOOK_PAGES.DIAGENESIS && <PlaceholderPage/>}*/}
             {/*{pageVisible === SED_NOTEBOOK_PAGES.FOSSILS && <PlaceholderPage/>}*/}
             {/*{pageVisible === SED_NOTEBOOK_PAGES.INTERPRETATIONS && <PlaceholderPage/>}*/}
-          </Animated.View>
-        </View>
+          </View>
+        </Animated.View>
         <View style={notebookStyles.footerContainer}>
           <NotebookFooter openPage={onNotebookPageVisible}/>
         </View>
@@ -189,7 +193,7 @@ const NotebookPanel = (props) => {
 
   return (
     <View style={notebookStyles.panel}>
-      {isEmpty(spot) ? renderNotebookContentNoSpot() : renderNotebookContent()}
+      {isNotebookPanelVisible && (!isEmpty(spot) ? renderNotebookContent() : renderNotebookContentNoSpot())}
     </View>
   );
 };

@@ -5,6 +5,7 @@ import {Icon, ListItem} from 'react-native-elements';
 import commonStyles from '../../shared/common.styles';
 import {isEmpty, padWithLeadingZeros, toTitleCase} from '../../shared/Helpers';
 import * as themes from '../../shared/styles.constants';
+import useFormHook from '../form/useForm';
 import {FIRST_ORDER_CLASS_FIELDS, SECOND_ORDER_CLASS_FIELDS} from './measurements.constants';
 import useMeasurementsHook from './useMeasurements';
 
@@ -12,12 +13,13 @@ import useMeasurementsHook from './useMeasurements';
 const MeasurementItem = (props) => {
 
   const [useMeasurements] = useMeasurementsHook();
+  const [useForm] = useFormHook();
 
   const getTypeText = (item) => {
     let firstOrderClass = FIRST_ORDER_CLASS_FIELDS.find(firstOrderClassField => item[firstOrderClassField]);
     let secondOrderClass = SECOND_ORDER_CLASS_FIELDS.find(secondOrderClassField => item[secondOrderClassField]);
     let firstOrderClassLabel = firstOrderClass
-      ? toTitleCase(useMeasurements.getLabel(item[firstOrderClass]))
+      ? toTitleCase(useForm.getLabel(item[firstOrderClass], ['measurement']))
       : 'Unknown';
     firstOrderClassLabel = firstOrderClassLabel.replace('Orientation', 'Feature');
     if (firstOrderClassLabel === 'Tabular Feature') firstOrderClassLabel = 'Planar Feature (TZ)';

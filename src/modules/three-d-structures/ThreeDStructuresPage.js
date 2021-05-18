@@ -5,11 +5,12 @@ import {ListItem} from 'react-native-elements';
 import {useDispatch, useSelector} from 'react-redux';
 
 import commonStyles from '../../shared/common.styles';
-import {getNewId} from '../../shared/Helpers';
+import {getNewId, toTitleCase} from '../../shared/Helpers';
 import FlatListItemSeparator from '../../shared/ui/FlatListItemSeparator';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
 import SectionDividerWithRightButton from '../../shared/ui/SectionDividerWithRightButton';
 import uiStyles from '../../shared/ui/ui.styles';
+import {useFormHook} from '../form';
 import {LABEL_DICTIONARY} from '../form';
 import {MODALS} from '../home/home.constants';
 import {setModalValues, setModalVisible} from '../home/home.slice';
@@ -26,8 +27,8 @@ const ThreeDStructuresPage = () => {
   const [selected3dStructure, setSelected3dStructure] = useState({});
   const [isDetailView, setIsDetailView] = useState(false);
 
-  const threeDStructuresDictionary = Object.values(LABEL_DICTIONARY._3d_structures).reduce(
-    (acc, form) => ({...acc, ...form}), {});
+  const [useForm] = useFormHook();
+
   const SECTIONS = {
     FOLDS: {title: 'Folds', key: 'fold'},
     TENSORS: {title: 'Tensors', key: 'tensor'},
@@ -53,22 +54,20 @@ const ThreeDStructuresPage = () => {
     setIsDetailView(true);
   };
 
-  const getLabel = (key) => {
-    if (Array.isArray(key)) {
-      const labelsArr = key.map(val => threeDStructuresDictionary[val] || val);
-      return labelsArr.join(', ');
-    }
-    return threeDStructuresDictionary[key] || key;
-  };
-
   const get3dStructureTitle = (threeDStructure) => {
-    return threeDStructure.label || getLabel(threeDStructure.feature_type) || getLabel(threeDStructure.type) || '';
+    return threeDStructure.label
+      || toTitleCase(useForm.getLabel(threeDStructure.feature_type, ['_3d_structures', threeDStructure.feature_type]))
+      || toTitleCase(useForm.getLabel(threeDStructure.type, ['_3d_structures', threeDStructure.feature_type]))
+      || '';
   };
 
   const render3dStructure = (threeDStructure) => {
     const threeDStructureTitle = get3dStructureTitle(threeDStructure);
     const threeDStructureFieldsText = Object.entries(threeDStructure).reduce((acc, [key, value]) => {
-      return key === 'id' ? acc : (acc === '' ? '' : acc + '\n') + getLabel(key) + ': ' + getLabel(value);
+      return key === 'id' ? acc
+        : (acc === '' ? '' : acc + '\n')
+        + toTitleCase(useForm.getLabel(key, ['_3d_structures', threeDStructure.feature_type])) + ': '
+        + useForm.getLabels(value, ['_3d_structures', threeDStructure.feature_type]);
     }, '');
     return (
       <ListItem

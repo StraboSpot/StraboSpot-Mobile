@@ -4,7 +4,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {getNewId, isEmpty} from '../../shared/Helpers';
 import {COMPASS_TOGGLE_BUTTONS} from '../compass/compass.constants';
-import {LABEL_DICTIONARY} from '../form';
+import {useFormHook} from '../form';
 import {NOTEBOOK_SUBPAGES} from '../notebook-panel/notebook.constants';
 import {setNotebookPageVisible} from '../notebook-panel/notebook.slice';
 import {editedSpotProperties, setSelectedAttributes} from '../spots/spots.slice';
@@ -17,6 +17,8 @@ const useMeasurements = () => {
   const useMeasurementTemplates = useSelector(state => state.project.project?.templates?.useMeasurementTemplates);
   const activeMeasurementTemplates = useSelector(
     state => state.project.project?.templates?.activeMeasurementTemplates) || [];
+
+  const [useForm] = useFormHook();
 
   const createNewMeasurement = () => {
     let measurements = [];
@@ -123,9 +125,7 @@ const useMeasurements = () => {
   };
 
   const getLabel = (key) => {
-    const measurementsDictionary = Object.values(LABEL_DICTIONARY.measurement).reduce(
-      (acc, form) => ({...acc, ...form}), {});
-    return measurementsDictionary[key] || key.replace(/_/g, ' ');
+    return useForm.getLabel(key, ['measurement']);
   };
 
   return [{

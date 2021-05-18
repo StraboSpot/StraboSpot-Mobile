@@ -262,6 +262,7 @@ const useMaps = () => {
 
   // If feature is mapped on geographical map, not an image basemap or strat section
   const isOnGeoMap = (feature) => {
+    if (isEmpty(feature)) return false;
     return !feature.properties.image_basemap && !feature.properties.strat_section;
   };
 

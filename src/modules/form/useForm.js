@@ -1,18 +1,10 @@
 import {Alert} from 'react-native';
 
 import * as forms from '../../assets/forms';
-import {isEmpty, toTitleCase} from '../../shared/Helpers';
+import {isEmpty} from '../../shared/Helpers';
 import {LABEL_DICTIONARY} from '../form';
 
 const useForm = () => {
-  /*const createDefaultLabel = (data) => {
-   let label = data.feature_type ? getFeatureTypeLabel(data.feature_type) : '';
-   if (isEmpty(label) && data.type) label = data.type.split('_')[0] + ' feature';
-   if (data.strike) label += ' ' + data.strike.toString();
-   else if (data.trend) label += ' ' + data.trend.toString();
-   return label;
-   };*/
-
   // Return the choices object given the form category and name
   const getChoices = ([category, name]) => {
     const choices = forms.default[category] && forms.default[category][name] && forms.default[category][name].choices || [];
@@ -30,9 +22,22 @@ const useForm = () => {
     else return {};
   };
 
-  // Get a label for a given a key
-  const getLabel = (key) => {
-    return LABEL_DICTIONARY[key] || toTitleCase(key.toString().replace(/_/g, ' '));
+  // Get a label for a given key with the option of giving a form category and name
+  const getLabel = (key, [category, name]) => {
+    let dictionary = {};
+    if (category && name) dictionary = LABEL_DICTIONARY[category][name];
+    else if (category) {
+      dictionary = Object.values(LABEL_DICTIONARY[category]).reduce((acc, form) => ({...acc, ...form}), {});
+    }
+    if (dictionary) return dictionary[key.toString()] || key.toString().replace(/_/g, ' ');
+    else return key.toString().replace(/_/g, ' ');
+  };
+
+  // Get a labels as string for given keys with the option of giving a form category and name
+  const getLabels = (keys, [category, name]) => {
+    if (!Array.isArray(keys)) keys = [keys];
+    const labelsArr = keys.map(val => getLabel(val, [category, name]));
+    return labelsArr.join(', ');
   };
 
   // Get the fields relevant to a given field, meaning the field itself and any fields related by skip-logic
@@ -86,7 +91,7 @@ const useForm = () => {
 
   const showErrors = (...formsIn) => {
     const errors = formsIn.reduce((acc, form) => ({...acc, ...form.errors}), {});
-    const errorMessages = Object.entries(errors).map(([key, value]) => getLabel(key) + ': ' + value);
+    const errorMessages = Object.entries(errors).map(([key, value]) => getLabel(key, []) + ': ' + value);
     Alert.alert('Please Fix the Following Errors', errorMessages.join('\n'));
   };
 
@@ -153,6 +158,7 @@ const useForm = () => {
     getChoices: getChoices,
     getChoicesByKey: getChoicesByKey,
     getLabel: getLabel,
+    getLabels: getLabels,
     getRelevantFields: getRelevantFields,
     getSurvey: getSurvey,
     hasErrors: hasErrors,

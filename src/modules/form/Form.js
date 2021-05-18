@@ -1,11 +1,10 @@
-import React, {useEffect, useState} from 'react';
-import {Animated, FlatList, TextInput, View} from 'react-native';
+import React from 'react';
+import {Alert, FlatList, View} from 'react-native';
 
 import {Field} from 'formik';
 import {ListItem} from 'react-native-elements';
 
 import commonStyles from '../../shared/common.styles';
-import * as Helpers from '../../shared/Helpers';
 import FlatListItemSeparator from '../../shared/ui/FlatListItemSeparator';
 import SectionDivider from '../../shared/ui/SectionDivider';
 import {DateInputField, NumberInputField, SelectInputField, TextInputField, useFormHook} from '../form';

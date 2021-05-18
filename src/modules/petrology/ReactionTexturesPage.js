@@ -9,7 +9,7 @@ import {getNewId, isEmpty} from '../../shared/Helpers';
 import FlatListItemSeparator from '../../shared/ui/FlatListItemSeparator';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
 import SectionDivider from '../../shared/ui/SectionDivider';
-import {LABEL_DICTIONARY} from '../form';
+import {useFormHook} from '../form';
 import {NOTEBOOK_PAGES} from '../notebook-panel/notebook.constants';
 import {setNotebookPageVisible} from '../notebook-panel/notebook.slice';
 import ReturnToOverviewButton from '../notebook-panel/ui/ReturnToOverviewButton';
@@ -23,7 +23,9 @@ const ReactionTexturesPage = () => {
   const [selectedReaction, setSelectedReaction] = useState({});
   const [reactionView, setReactionView] = useState(REACTION_VIEW.OVERVIEW);
 
-  const petDictionary = Object.values(LABEL_DICTIONARY.pet).reduce((acc, form) => ({...acc, ...form}), {});
+  const [useForm] = useFormHook();
+
+  const formName = ['pet', 'reactions'];
 
   useEffect(() => {
     console.log('UE ReactionTextures: spot changed to', spot);
@@ -55,18 +57,10 @@ const ReactionTexturesPage = () => {
     }
   };
 
-  const getLabel = (key) => {
-    if (Array.isArray(key)) {
-      const labelsArr = key.map(val => petDictionary[val] || val);
-      return labelsArr.join(', ');
-    }
-    return petDictionary[key] || key;
-  };
-
   const renderReaction = (reaction) => {
     const reactionFieldsText = Object.entries(reaction).reduce((acc, [key, value]) => {
       return (key === 'id' || key === 'reactions') ? acc
-        : (acc === '' ? '' : acc + '\n') + getLabel(key) + ': ' + getLabel(value);
+        : (acc === '' ? '' : acc + '\n') + useForm.getLabel(key, formName) + ': ' + useForm.getLabels(value, formName);
     }, '');
     return (
       <ListItem

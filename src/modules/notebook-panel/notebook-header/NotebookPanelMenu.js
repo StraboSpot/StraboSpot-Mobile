@@ -88,9 +88,9 @@ const NotebookPanelMenu = (props) => {
           style={styles.dialogContent}
           text='Close Notebook'
           textStyle={styles.dialogText}
-          onPress={() => {
+          onPress={async () => {
+            await props.closeNotebookPanelMenu();
             props.closeNotebookPanel();
-            props.closeNotebookPanelMenu();
           }}
         />
       </DialogContent>

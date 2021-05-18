@@ -11,19 +11,19 @@ export const PRIMARY_NOTEBOOK_PAGES = {
 
 export const SECONDARY_NOTEBOOK_PAGES = {
   THREE_D_STRUCTURES: '3D Structures',
-  FABRICS: 'Fabrics',
+  // FABRICS: 'Fabrics',
   OTHER_FEATURES: 'Other Features',
   // RELATIONSHIPS: 'Relationships',
   DATA: 'Data',
 };
 
 export const PET_NOTEBOOK_PAGES = {
-  ROCK_TYPE_IGNEOUS: 'Igenous Rock',
-  ROCK_TYPE_METAMORPHIC: 'Metamorphic Rock',
-  MINERALS: 'Minerals',
-  REACTION_TEXTURES: 'Reaction Textures',
-  ECONOMIC: 'Economic',
-  TERNARY: 'Ternary',
+  // ROCK_TYPE_IGNEOUS: 'Igenous Rock',
+  // ROCK_TYPE_METAMORPHIC: 'Metamorphic Rock',
+  // MINERALS: 'Minerals',
+  // REACTION_TEXTURES: 'Reaction Textures',
+  // ECONOMIC: 'Economic',
+  // TERNARY: 'Ternary',
 };
 
 export const SED_NOTEBOOK_PAGES = {

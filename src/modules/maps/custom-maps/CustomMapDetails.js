@@ -25,32 +25,18 @@ import {CUSTOM_MAP_TYPES} from '../maps.constants';
 import {selectedCustomMapToEdit} from '../maps.slice';
 import useMapHook from '../useMaps';
 
-const {State: TextInputState} = TextInput;
-
 const AddCustomMaps = () => {
   const MBKeyboardType = Platform.OS === 'ios' ? 'url' : 'default';
   const MWKeyboardType = Platform.OS === 'ios' ? 'numeric' : 'phone-pad';
   const [useMaps] = useMapHook();
 
+  const dispatch = useDispatch();
   const MBAccessToken = useSelector(state => state.user.mapboxToken);
   const customMapToEdit = useSelector(state => state.map.selectedCustomMapToEdit);
 
   const [editableCustomMapData, setEditableCustomMapData] = useState(null);
-  const [textInputAnimate] = useState(new Animated.Value(0));
-
-  const dispatch = useDispatch();
 
   let sliderValuePercent = editableCustomMapData && Math.round(editableCustomMapData.opacity * 100).toFixed(0);
-  useEffect(() => {
-    Keyboard.addListener('keyboardDidShow', handleKeyboardShown);
-    Keyboard.addListener('keyboardDidHide', handleKeyboardHidden);
-    return function cleanup() {
-      Keyboard.removeListener('keyboardDidShow', handleKeyboardShown);
-      Keyboard.removeListener('keyboardDidHide', handleKeyboardHidden);
-      dispatch(selectedCustomMapToEdit({}));
-      console.log('Listners Removed');
-    };
-  }, []);
 
   useEffect(() => {
     if (!isEmpty(customMapToEdit)) setEditableCustomMapData(customMapToEdit);
@@ -269,7 +255,7 @@ const AddCustomMaps = () => {
   };
 
   return (
-    <Animated.View style={[{flex: 1, justifyContent: 'space-between'}, {transform: [{translateY: textInputAnimate}]}]}>
+    <View style={[{flex: 1, justifyContent: 'space-between'}]}>
       <View>
         {renderSidePanelHeader()}
         {renderTitle()}
@@ -300,7 +286,7 @@ const AddCustomMaps = () => {
           onPress={() => confirmDeleteMap()}
         />
       </View>
-    </Animated.View>
+    </View>
   );
 };
 

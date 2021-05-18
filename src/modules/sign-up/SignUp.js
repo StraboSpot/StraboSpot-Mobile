@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {ImageBackground, KeyboardAvoidingView, Text, View} from 'react-native';
+import {Animated, ImageBackground, Keyboard, Text, TextInput, View} from 'react-native';
 
 import NetInfo from '@react-native-community/netinfo';
 import {Button, CheckBox, Input} from 'react-native-elements';
@@ -9,6 +9,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import useServerRequests from '../../services/useServerRequests';
 import {VERSION_NUMBER} from '../../shared/app.constants';
 import {isEmpty, validate} from '../../shared/Helpers';
+import * as Helpers from '../../shared/Helpers';
 import IconButton from '../../shared/ui/IconButton';
 import Loading from '../../shared/ui/Loading';
 import StatusDialog from '../../shared/ui/StatusDialogBox';
@@ -16,8 +17,53 @@ import {setOnlineStatus} from '../home/home.slice';
 import styles from './signUp.styles';
 
 const checkMark = {type: 'feather', name: 'check', color: 'green'};
+const {State: TextInputState} = TextInput;
 
 const SignUp = (props) => {
+
+  const initialState = {
+    firstName: {
+      value: '',
+        valid: false,
+        validationRules: {
+        notEmpty: false,
+      },
+      touched: false,
+    },
+    lastName: {
+      value: '',
+        valid: false,
+        validationRules: {
+        notEmpty: false,
+      },
+      touched: false,
+    },
+    password: {
+      value: '',
+        valid: false,
+        validationRules: {
+        characterValidator: false,
+      },
+      touched: false,
+        showPassword: false,
+    },
+    confirmPassword: {
+      value: '',
+        valid: false,
+        validationRules: {
+        equalTo: 'password',
+      },
+      touched: false,
+    },
+    email: {
+      value: '',
+        valid: false,
+        validationRules: {
+        isEmail: true,
+      },
+      touched: false,
+    },
+  }
   const online = require('../../assets/icons/ConnectionStatusButton_connected.png');
   const offline = require('../../assets/icons/ConnectionStatusButton_offline.png');
 
@@ -30,49 +76,20 @@ const SignUp = (props) => {
   const [statusDialog, setStatusDialog] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
   const [statusDialogTitle, setStatusDialogTitle] = useState(null);
-  const [userData, setUserData] = useState({
-    firstName: {
-      value: '',
-      valid: false,
-      validationRules: {
-        notEmpty: false,
-      },
-      touched: false,
-    },
-    lastName: {
-      value: '',
-      valid: false,
-      validationRules: {
-        notEmpty: false,
-      },
-      touched: false,
-    },
-    password: {
-      value: '',
-      valid: false,
-      validationRules: {
-        characterValidator: false,
-      },
-      touched: false,
-      showPassword: false,
-    },
-    confirmPassword: {
-      value: '',
-      valid: false,
-      validationRules: {
-        equalTo: 'password',
-      },
-      touched: false,
-    },
-    email: {
-      value: '',
-      valid: false,
-      validationRules: {
-        isEmail: true,
-      },
-      touched: false,
-    },
-  });
+  const [textInputAnimate] = useState(new Animated.Value(0));
+  const [userData, setUserData] = useState(initialState);
+
+  useEffect(() => {
+    console.log('useEffect Form SignIn');
+    console.log('Home Keyboard Listeners Added');
+    Keyboard.addListener('keyboardDidShow', handleKeyboardDidShowSignUp);
+    Keyboard.addListener('keyboardDidHide', handleKeyboardDidHideSignUp);
+    return function cleanup() {
+      Keyboard.removeListener('keyboardDidShow', handleKeyboardDidShowSignUp);
+      Keyboard.removeListener('keyboardDidHide', handleKeyboardDidHideSignUp);
+      console.log('Home Keyboard Listeners Removed');
+    };
+  }, []);
 
   useEffect(() => {
     if (isOnline === null) {
@@ -84,6 +101,10 @@ const SignUp = (props) => {
         });
     }
   }, [isOnline]);
+
+  const handleKeyboardDidShowSignUp = (event) => Helpers.handleKeyboardDidShow(event, TextInputState, textInputAnimate);
+
+  const handleKeyboardDidHideSignUp = () => Helpers.handleKeyboardDidHide(textInputAnimate);
 
   const onChangeText = (key, value) => {
     let connectedValue = {};
@@ -134,6 +155,7 @@ const SignUp = (props) => {
       if (newUser.valid) {
         if (newUser.message.includes('A confirmation link has been emailed')) {
           setStatusDialogTitle('Welcome!');
+          setUserData(initialState);
           console.log('user successfully signed up!: ');
         }
         else setStatusDialogTitle('Something went wrong...!');
@@ -173,15 +195,12 @@ const SignUp = (props) => {
           buttonStyle={styles.buttonStyle}
           containerStyle={styles.buttonContainer}
           disabled={!isOnline}
-          raised
           onPress={signUp}
         />
         <Button
           title='Back to Sign In'
           buttonStyle={styles.buttonStyle}
           containerStyle={styles.buttonContainer}
-          raised
-          type={'solid'}
           onPress={() => props.navigation.navigate('SignIn')}
         />
       </View>
@@ -201,82 +220,90 @@ const SignUp = (props) => {
             source={isOnline ? online : offline}
           />
         </View>
-        <KeyboardAvoidingView
-          behavior={'position'}
-          contentContainerStyle={{alignItems: 'center', marginTop: 100}}
-        >
+        <View>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Strabo Spot 2</Text>
+            <Text style={styles.version}>{VERSION_NUMBER}</Text>
+          </View>
           <View>
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>Strabo Spot 2</Text>
-              <Text style={styles.version}>{VERSION_NUMBER}</Text>
-            </View>
-            <View>
-              <View style={styles.inputContainerGroup}>
-                <View style={{flexDirection: 'row'}}>
-                  <Input
-                    containerStyle={styles.input}
-                    inputContainerStyle={styles.inputContainer}
-                    placeholder={'First Name'}
-                    onChangeText={val => onChangeText('firstName', val)}
-                  />
-                  <Input
-                    containerStyle={styles.input}
-                    inputContainerStyle={styles.inputContainer}
-                    placeholder={'Last Name'}
-                    onChangeText={val => onChangeText('lastName', val)}
-                  />
-                </View>
-                <View style={{width: 700, alignItems: 'center'}}>
-                  <Text style={styles.text}>Must contain at least one uppercase, one digit, and no spaces</Text>
-                </View>
-                <View style={{flexDirection: 'row'}}>
-                  <Input
-                    containerStyle={styles.input}
-                    inputContainerStyle={styles.inputContainer}
-                    secureTextEntry={!userData.password.showPassword}
-                    placeholder={'Create Password'}
-                    rightIcon={!isEmpty(userData.password.value) && userData.password.valid ? checkMark : null}
-                    autoCapitalize='none'
-                    onChangeText={val => onChangeText('password', val)}
-                  />
-                  <Input
-                    containerStyle={styles.input}
-                    inputContainerStyle={styles.inputContainer}
-                    placeholder={'Confirm Password'}
-                    rightIcon={!isEmpty(userData.password.value) && userData.confirmPassword.valid ? checkMark : null}
-                    secureTextEntry={!userData.password.showPassword}
-                    autoCapitalize='none'
-                    onChangeText={val => onChangeText('confirmPassword', val)}
-                  />
-                </View>
+            <Animated.View style={[styles.inputContainerGroup, {transform: [{translateY: textInputAnimate}]}]}>
+              <View style={{flexDirection: 'row'}}>
+                <TextInput
+                  style={styles.input}
+                  placeholder='First Name'
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                  placeholderTextColor='#6a777e'
+                  onChangeText={val => onChangeText('firstName', val)}
+                  value={userData.firstName.value}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder='Last Name'
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                  placeholderTextColor='#6a777e'
+                  onChangeText={val => onChangeText('lastName', val)}
+                  value={userData.lastName.value}
+                />
+              </View>
+              <View style={{width: 700, alignItems: 'center'}}>
+                <Text style={styles.text}>Must contain at least one uppercase, one digit, and no spaces</Text>
+              </View>
+              <View style={{flexDirection: 'row'}}>
+                <TextInput
+                  style={styles.input}
+                  placeholder='Password'
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                  placeholderTextColor='#6a777e'
+                  onChangeText={val => onChangeText('password', val)}
+                  value={userData.password.value}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder='Confirm Password'
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                  placeholderTextColor='#6a777e'
+                  secureTextEntry={!userData.password.showPassword}
+                  onChangeText={val => onChangeText('confirmPassword', val)}
+                  value={userData.confirmPassword.value}
+                />
+              </View>
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <Text style={styles.text}>Show Password</Text>
                 <CheckBox
-                  title='Show Password'
+                  // title='Show Password'
                   textStyle={styles.checkBoxText}
+                  containerStyle={{backgroundColor: 'transparent'}}
                   checkedColor={'white'}
+                  uncheckedColor={'white'}
                   checked={userData.password.showPassword}
                   onPress={() => toggleCheck()}
                 />
-                <Input
-                  keyboardType={'email-address'}
-                  containerStyle={styles.input}
-                  inputContainerStyle={styles.inputContainer}
-                  placeholder={'E-Mail'}
-                  rightIcon={!isEmpty(userData.email.value) && userData.email.valid ? checkMark : null}
-                  onChangeText={val => onChangeText('email', val)}
-                />
-                {renderButtons()}
               </View>
-              <StatusDialog
-                visible={statusDialog}
-                dialogTitle={statusDialogTitle}
-                onTouchOutside={() => setStatusDialog(false)}
-                dialogAnimation={new SlideAnimation({slideFrom: 'bottom'})}
-              >
-                <Text>{statusMessage}</Text>
-              </StatusDialog>
-            </View>
+              <TextInput
+                style={styles.input}
+                placeholder='Email'
+                autoCapitalize='none'
+                autoCorrect={false}
+                placeholderTextColor='#6a777e'
+                onChangeText={val => onChangeText('email', val)}
+                value={userData.email.value}
+              />
+              {renderButtons()}
+            </Animated.View>
+            <StatusDialog
+              visible={statusDialog}
+              dialogTitle={statusDialogTitle}
+              onTouchOutside={() => setStatusDialog(false)}
+              dialogAnimation={new SlideAnimation({slideFrom: 'bottom'})}
+            >
+              <Text>{statusMessage}</Text>
+            </StatusDialog>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </View>
       {loading && <Loading/>}
     </ImageBackground>

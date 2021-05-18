@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import commonStyles from '../../shared/common.styles';
 import {isEmpty, truncateText} from '../../shared/Helpers';
 import IconButton from '../../shared/ui/IconButton';
+import uiStyles from '../../shared/ui/ui.styles';
 import {MAP_MODES} from '../maps/maps.constants';
 import useProjectHook from '../project/useProject';
 import {MODALS} from './home.constants';
@@ -52,7 +53,7 @@ const RightSideButtons = (props) => {
           : require('../../assets/icons/LineFreehandButton.png');
       case MAP_MODES.DRAW.POLYGON:
         return props.mapMode === MAP_MODES.DRAW.POLYGON
-          ? require('../../assets/icons/Polygon_pressed.png')
+          ? require('../../assets/icons/PolygonButton_pressed.png')
           : require('../../assets/icons/PolygonButton.png');
       case MAP_MODES.DRAW.FREEHANDPOLYGON:
         return props.mapMode === MAP_MODES.DRAW.FREEHANDPOLYGON
@@ -70,9 +71,6 @@ const RightSideButtons = (props) => {
             ? require('../../assets/icons/NotebookViewButton_pressed.png')
             : require('../../assets/icons/NotebookViewButton.png')}
           onPress={() => props.toggleNotebookPanel()}
-        />
-        <IconButton
-          source={isOnline ? online : offline}
         />
       </Animated.View>
       {!currentImageBasemap && !isNotebookPanelVisible && (

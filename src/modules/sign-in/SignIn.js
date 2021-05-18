@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Alert, ImageBackground, KeyboardAvoidingView, Text, TextInput, View} from 'react-native';
+import {Alert, Animated, ImageBackground, Keyboard, KeyboardAvoidingView, Text, TextInput, View} from 'react-native';
 
 import NetInfo from '@react-native-community/netinfo';
 import {useNavigation} from '@react-navigation/native';
@@ -12,10 +12,13 @@ import {PASSWORD_TEST, USERNAME_TEST} from '../../../Config';
 import useServerRequests from '../../services/useServerRequests';
 import {VERSION_NUMBER} from '../../shared/app.constants';
 import {isEmpty, readDataUrl} from '../../shared/Helpers';
+import * as Helpers from '../../shared/Helpers';
 import IconButton from '../../shared/ui/IconButton';
 import {setOnlineStatus, setProjectLoadSelectionModalVisible, setSignedInStatus} from '../home/home.slice';
 import {setUserData} from '../user/userProfile.slice';
 import styles from './signIn.styles';
+
+const {State: TextInputState} = TextInput;
 
 const SignIn = (props) => {
 
@@ -24,6 +27,7 @@ const SignIn = (props) => {
     const [username, setUsername] = useState(__DEV__ ? USERNAME_TEST : '');
     const [password, setPassword] = useState(__DEV__ ? PASSWORD_TEST : '');
     const [userProfile, setUserProfile] = useState({});
+    const [textInputAnimate] = useState(new Animated.Value(0));
 
     const dispatch = useDispatch();
     const isOnline = useSelector(state => state.home.isOnline);
@@ -42,6 +46,22 @@ const SignIn = (props) => {
       console.log('UserProfile', userProfile);
       dispatch(setUserData(userProfile));
     }, [userProfile]);
+
+    useEffect(() => {
+      console.log('useEffect Form SignIn');
+      console.log('Home Keyboard Listeners Added');
+      Keyboard.addListener('keyboardDidShow', handleKeyboardDidShowSignIn);
+      Keyboard.addListener('keyboardDidHide', handleKeyboardDidHideSignIn);
+      return function cleanup() {
+        Keyboard.removeListener('keyboardDidShow', handleKeyboardDidShowSignIn);
+        Keyboard.removeListener('keyboardDidHide', handleKeyboardDidHideSignIn);
+        console.log('Home Keyboard Listeners Removed');
+      };
+    }, []);
+
+    const handleKeyboardDidShowSignIn = (event) => Helpers.handleKeyboardDidShow(event, TextInputState, textInputAnimate);
+
+    const handleKeyboardDidHideSignIn = () => Helpers.handleKeyboardDidHide(textInputAnimate);
 
     const guestSignIn = async () => {
       Sentry.configureScope((scope) => {
@@ -174,20 +194,12 @@ const SignIn = (props) => {
               source={isOnline ? online : offline}
             />
           </View>
-          <KeyboardAvoidingView
-            behavior={'position'}
-            contentContainerStyle={{
-              // flex: 1,
-              // justifyContent: 'space-between',
-            }}
-            keyboardVerticalOffset={0}
-          >
-            <View>
+            <View >
               <View style={styles.titleContainer}>
                 <Text style={styles.title}>Strabo Spot 2</Text>
                 <Text style={styles.version}>{VERSION_NUMBER}</Text>
               </View>
-              <View style={styles.signInContainer}>
+              <Animated.View style={[styles.signInContainer, {transform: [{translateY: textInputAnimate}]}]}>
                 <TextInput
                   style={styles.input}
                   placeholder='Username'
@@ -211,9 +223,8 @@ const SignIn = (props) => {
                   onSubmitEditing={signIn}
                 />
                 {renderButtons()}
-              </View>
+              </Animated.View>
             </View>
-          </KeyboardAvoidingView>
         </View>
       </ImageBackground>
     );

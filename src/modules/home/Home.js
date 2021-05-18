@@ -1,20 +1,21 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Animated, Dimensions, Keyboard, Platform, Text, TextInput, View} from 'react-native';
+import {Alert, Animated, Dimensions, Keyboard, Platform, Text, TextInput, View} from 'react-native';
 
 import NetInfo from '@react-native-community/netinfo';
 import {useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import {Button} from 'react-native-elements';
+import {Button, Image} from 'react-native-elements';
 import {FlatListSlider} from 'react-native-flatlist-slider';
 import {useDispatch, useSelector} from 'react-redux';
 
 import useDeviceHook from '../../services/useDevice';
 import commonStyles from '../../shared/common.styles';
-import {animatePanels, isEmpty} from '../../shared/Helpers';
 import * as Helpers from '../../shared/Helpers';
+import {animatePanels, isEmpty} from '../../shared/Helpers';
 import LoadingSpinner from '../../shared/ui/Loading';
 import StatusDialogBox from '../../shared/ui/StatusDialogBox';
 import ToastPopup from '../../shared/ui/Toast';
+import uiStyles from '../../shared/ui/ui.styles';
 import CompassModal from '../compass/CompassModal';
 import MeasurementTemplatesModal from '../compass/MeasurementTemplatesModal';
 import FabricModal from '../fabrics/FabricModal';
@@ -78,6 +79,7 @@ import ThreeDStrcturesModal from '../three-d-structures/ThreeDStrcturesModal';
 const {State: TextInputState} = TextInput;
 
 const Home = () => {
+  const offlineIcon = require('../../assets/icons/ConnectionStatusButton_offline.png');
   const platform = Platform.OS === 'ios' ? 'window' : 'screen';
   const deviceDimensions = Dimensions.get(platform);
   const homeMenuPanelWidth = 300;
@@ -182,17 +184,20 @@ const Home = () => {
 
   useEffect(() => {
     console.log('useEffect Form []');
-    Keyboard.addListener('keyboardDidShow', handleKeyboardDidShow);
-    Keyboard.addListener('keyboardDidHide', handleKeyboardDidHide);
+    console.log('Home Keyboard Listeners Added');
+    Keyboard.addListener('keyboardDidShow', handleKeyboardDidShowHome);
+    Keyboard.addListener('keyboardDidHide', handleKeyboardDidHideHome);
     return function cleanup() {
-      Keyboard.removeListener('keyboardDidShow', handleKeyboardDidShow);
-      Keyboard.removeListener('keyboardDidHide', handleKeyboardDidHide);
+      Keyboard.removeListener('keyboardDidShow', handleKeyboardDidShowHome);
+      Keyboard.removeListener('keyboardDidHide', handleKeyboardDidHideHome);
+      console.log('Home Keyboard Listeners Removed');
     };
-  }, []);
+  }, [modalVisible]);
 
-  const handleKeyboardDidShow = (event) => Helpers.handleKeyboardDidShow(event, TextInputState, homeTextInputAnimate);
+  const handleKeyboardDidShowHome = (event) => Helpers.handleKeyboardDidShow(event, TextInputState,
+    homeTextInputAnimate);
 
-  const handleKeyboardDidHide = () => Helpers.handleKeyboardDidHide(homeTextInputAnimate);
+  const handleKeyboardDidHideHome = () => Helpers.handleKeyboardDidHide(homeTextInputAnimate);
 
   const populateImageSlideshowData = () => {
     toggleHomeDrawerButton();
@@ -392,6 +397,8 @@ const Home = () => {
     dispatch(setNotebookPanelVisible(true));
   };
 
+  const openStraboSpotURL = () => useDevice.openURL('https://www.strabospot.org/login');
+
   const renderFloatingViews = () => {
     if (modalVisible === MODALS.NOTEBOOK_MODALS.TAGS && isNotebookPanelVisible && !isEmpty(selectedSpot)) {
       return (
@@ -549,7 +556,7 @@ const Home = () => {
       return (
         <Animated.View
           style={[sidePanelStyles.sidePanelContainerPhones, animateMainMenuSidePanel]}>
-          <Animated.View style={{transform: [{translateY: homeTextInputAnimate}]}}>
+          <Animated.View style={{flex: 1, transform: [{translateY: homeTextInputAnimate}]}}>
             {renderSidePanelContent()}
           </Animated.View>
         </Animated.View>
@@ -575,7 +582,7 @@ const Home = () => {
       case SIDE_PANEL_VIEWS.TAG_ADD_REMOVE_SPOTS:
         return <TagAddRemoveSpots/>;
       case SIDE_PANEL_VIEWS.USER_PROFILE:
-        return <UserProfile/>;
+        return <UserProfile toast={(message) => toastRef.current.show(message)}/>;
     }
   };
 
@@ -694,16 +701,18 @@ const Home = () => {
     </Animated.View>
   );
 
-  const notebookPanel = (
-    <Animated.View style={[notebookStyles.panel, animateNotebookMenu]}>
-      <NotebookPanel
-        closeNotebookPanel={closeNotebookPanel}
-        createDefaultGeom={() => mapComponentRef.current.createDefaultGeom()}
-        openMainMenu={() => toggleHomeDrawerButton()}
-        zoomToSpot={() => mapComponentRef.current.zoomToSpot()}
-      />
-    </Animated.View>
-  );
+  const renderNotebookPanel = () => {
+    return (
+      <Animated.View style={[notebookStyles.panel, animateNotebookMenu]}>
+        <NotebookPanel
+          closeNotebookPanel={closeNotebookPanel}
+          createDefaultGeom={() => mapComponentRef.current.createDefaultGeom()}
+          openMainMenu={() => toggleHomeDrawerButton()}
+          zoomToSpot={() => mapComponentRef.current.zoomToSpot()}
+        />
+      </Animated.View>
+    );
+  };
 
   return (
     <View style={homeStyles.container}>
@@ -715,6 +724,12 @@ const Home = () => {
         isSelectingForStereonet={isSelectingForStereonet}
         isSelectingForTagging={isSelectingForTagging}
       />
+      <View style={uiStyles.offlineImageIconContainer}>
+        {!isOnline && <Image
+          source={offlineIcon}
+          style={uiStyles.offlineIcon}
+        />}
+      </View>
       {vertexStartCoords && <VertexDrag/>}
       <ToastPopup toastRef={toastRef}/>
       {Platform.OS === 'android' && (
@@ -771,11 +786,11 @@ const Home = () => {
         visible={isProjectLoadSelectionModalVisible}
         closeModal={() => closeInitialProjectLoadModal()}
       />
-      <StatusModal/>
+      <StatusModal openUrl={openStraboSpotURL}/>
       <UploadModal toggleHomeDrawer={() => toggleHomeDrawerButton()}/>
       {/*------------------------*/}
       {isHomeLoading && <LoadingSpinner/>}
-      {notebookPanel}
+      {renderNotebookPanel()}
       {MainMenu}
       {isOnline && toggleOfflineMapLabel() && renderOfflineMapViewLabel()}
       {renderSaveAndCancelDrawButtons()}

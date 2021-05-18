@@ -3,13 +3,14 @@ import React from 'react';
 import {isEmpty} from '../../shared/Helpers';
 import LittleSpacer from '../../shared/ui/LittleSpacer';
 import {BoolButton, ChoiceButtons, Form, FormSlider, MainButtons, useFormHook} from '../form';
+import {FIRST_ORDER_FABRIC_FIELDS} from './fabric.constants';
 
 const FaultRockFabric = (props) => {
   const [useForm] = useFormHook();
 
   // Relevant keys for quick-entry modal
   const firstKeys = ['label'];
-  const mainButttonsKeys = ['inco_nofol', 'inco_fol', 'co_nofol', 'co_fol'];
+  const mainButttonsKeys = FIRST_ORDER_FABRIC_FIELDS.fault_rock;
   const spatialConfigKey = 'spatial_config';
   const spatialConfigDescriptionKey = 'desc_spat_char';
   const kinIndPresentKey = 'kin_ind_present';

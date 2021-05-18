@@ -227,7 +227,7 @@ const useProject = () => {
         }
         else if (selectedProject.source === 'server') {
           dispatch(setSelectedProject({project: '', source: ''}));
-          await useDownload.initializeDownload(selectedProject.project, selectedProject.source);
+          await useDownload.initializeDownload(selectedProject.project);
         }
       }
     }

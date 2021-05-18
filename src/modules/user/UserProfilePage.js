@@ -23,7 +23,6 @@ import userStyles from './user.styles';
 import {setUserData} from './userProfile.slice';
 
 
-const {State: TextInputState} = TextInput;
 
 const UserProfile = (props) => {
   const formRef = useRef(null);
@@ -33,31 +32,16 @@ const UserProfile = (props) => {
 
   const [avatar, setAvatar] = useState({});
   const [isImageDialogVisible, setImageDialogVisible] = useState(false);
-  const [textInputAnimate] = useState(new Animated.Value(0));
 
   const [useForm] = useFormHook();
   const useUpload = useUploadHook();
 
   const formName = ['general', 'user_profile'];
-  //
-  // useEffect(() => {
-  //   console.log('useEffect Form []');
-  //   Keyboard.addListener('keyboardDidShow', handleKeyboardDidShow);
-  //   Keyboard.addListener('keyboardDidHide', handleKeyboardDidHide);
-  //   return function cleanup() {
-  //     Keyboard.removeListener('keyboardDidShow', handleKeyboardDidShow);
-  //     Keyboard.removeListener('keyboardDidHide', handleKeyboardDidHide);
-  //   };
-  // }, []);
 
   useLayoutEffect(() => {
     console.log('UE userProfile []');
     return () => saveForm();
   }, []);
-
-  const handleKeyboardDidShow = (event) => Helpers.handleKeyboardDidShow(event, TextInputState, textInputAnimate);
-
-  const handleKeyboardDidHide = () => Helpers.handleKeyboardDidHide(textInputAnimate);
 
   const pickImageSource = async (source) => {
     if (source === 'gallery') {
@@ -156,15 +140,11 @@ const UserProfile = (props) => {
     try {
       console.log(values);
       await useUpload.uploadProfile(values);
-      dispatch(clearedStatusMessages());
-      dispatch(addedStatusMessage('Profile uploaded successfully!'));
-      dispatch(setStatusMessagesModalVisible(true));
+      props.toast('Profile uploaded successfully!');
     }
     catch (err) {
       console.error(err);
-      dispatch(clearedStatusMessages());
-      dispatch(addedStatusMessage('Profile uploaded unsuccessfully...'));
-      dispatch(setErrorMessagesModalVisible(true));
+      props.toast('Profile uploaded UN-successfully...');
     }
   };
 
@@ -175,7 +155,7 @@ const UserProfile = (props) => {
         headerTitle={'Profile'}
         backButton={() => dispatch(setSidePanelVisible({bool: false}))}
       />
-      <Animated.View style={{transform: [{translateY: textInputAnimate}], flex: 1}}>
+      <Animated.View style={{flex: 1}}>
         <View style={{alignItems: 'center', marginTop: 15}}>
           <Avatar
             containerStyle={userStyles.avatarLabelContainer}

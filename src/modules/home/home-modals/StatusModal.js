@@ -8,13 +8,15 @@ import {useDispatch, useSelector} from 'react-redux';
 import useDownloadHook from '../../../services/useDownload';
 import useImportHook from '../../../services/useImport';
 import commonStyles from '../../../shared/common.styles';
+import {BLUE} from '../../../shared/styles.constants';
 import StatusDialogBox from '../../../shared/ui/StatusDialogBox';
 import {MAIN_MENU_ITEMS} from '../../main-menu-panel/mainMenu.constants';
 import {setMenuSelectionPage} from '../../main-menu-panel/mainMenuPanel.slice';
 import {setSelectedProject} from '../../project/projects.slice';
 import {setStatusMessagesModalVisible} from '../home.slice';
+import homeStyles from '../home.style';
 
-const StatusModal = () => {
+const StatusModal = (props) => {
   const dispatch = useDispatch();
   const isStatusMessagesModalVisible = useSelector(state => state.home.isStatusMessagesModalVisible);
   const isModalLoading = useSelector(state => state.home.loading.modal);
@@ -60,9 +62,9 @@ const StatusModal = () => {
               )
               : (
                 <View style={{alignItems: 'center'}}>
-                  {selectedProject.source !== ''
-                  && <Text style={{fontWeight: 'bold', textAlign: 'center'}}>Press Continue to load
-                    project</Text>}
+                  {selectedProject.source !== '' && (
+                    <Text style={{fontWeight: 'bold', textAlign: 'center'}}>Press Continue to load project</Text>
+                  )}
                   <View style={{flexDirection: 'row'}}>
                     <Button
                       title={selectedProject.source !== '' ? 'Continue' : 'OK'}
@@ -70,14 +72,26 @@ const StatusModal = () => {
                       containerStyle={{padding: 10}}
                       onPress={() => getProjectFromSource(selectedProject)}
                     />
-                    {selectedProject.source !== ''
-                    && <Button
-                      title={'Cancel'}
-                      containerStyle={{padding: 10}}
-                      type={'clear'}
-                      onPress={() => dispatch(setStatusMessagesModalVisible(false))}
-                    />}
+                    {selectedProject.source !== '' && (
+                      <Button
+                        title={'Cancel'}
+                        containerStyle={{padding: 10}}
+                        type={'clear'}
+                        onPress={() => dispatch(setStatusMessagesModalVisible(false))}
+                      />
+                    )}
                   </View>
+                  <Button
+                    titleStyle={homeStyles.urlText}
+                    icon={{
+                      name: 'globe-outline',
+                      type: 'ionicon',
+                      size: 15,
+                      color: BLUE,
+                    }}
+                    title={'Visit account at StraboSpot.org'}
+                    type={'clear'}
+                    onPress={props.openUrl}/>
                 </View>
               )
             }

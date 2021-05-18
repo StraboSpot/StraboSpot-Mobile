@@ -48,7 +48,9 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   fieldValueFull: {
-    height: '100%',
+    // height: 350,
+    minHeight: 200,
+    maxHeight: 300,
     textAlignVertical: 'top',
   },
   fieldError: {

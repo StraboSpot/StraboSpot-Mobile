@@ -22,7 +22,6 @@ const NotebookHeader = (props) => {
   const [useSpots] = useSpotsHook();
 
   const spot = useSelector(state => state.spot.selectedSpot);
-  const [spotName, setSpotName] = useState(spot.properties.name);
   const [isNotebookPanelMenuVisible, setIsNotebookPanelMenuVisible] = useState(false);
 
   const getSpotCoordText = () => {
@@ -159,8 +158,7 @@ const NotebookHeader = (props) => {
       <View style={headerStyles.headerSpotNameAndCoordsContainer}>
         <TextInput
           defaultValue={spot.properties.name}
-          onChangeText={(text) => setSpotName(text)}
-          onBlur={() => onSpotEdit('name', spotName)}
+          onChangeText={(text) => onSpotEdit('name', text)}
           style={headerStyles.headerSpotName}/>
         {getSpotCoordText() ? renderCoordsText() : renderSetCoordsText()}
       </View>

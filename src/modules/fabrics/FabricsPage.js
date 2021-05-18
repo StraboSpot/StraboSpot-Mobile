@@ -1,16 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {SectionList, View} from 'react-native';
 
-import {ListItem} from 'react-native-elements';
-import {useDispatch, useSelector} from 'react-redux';
+import {batch, useDispatch, useSelector} from 'react-redux';
 
-import commonStyles from '../../shared/common.styles';
 import FlatListItemSeparator from '../../shared/ui/FlatListItemSeparator';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
 import SectionDivider from '../../shared/ui/SectionDivider';
 import SectionDividerWithRightButton from '../../shared/ui/SectionDividerWithRightButton';
 import uiStyles from '../../shared/ui/ui.styles';
-import {LABEL_DICTIONARY} from '../form';
 import {MODALS} from '../home/home.constants';
 import {setModalValues, setModalVisible} from '../home/home.slice';
 import {NOTEBOOK_PAGES} from '../notebook-panel/notebook.constants';
@@ -18,17 +15,15 @@ import {setNotebookPageVisible} from '../notebook-panel/notebook.slice';
 import ReturnToOverviewButton from '../notebook-panel/ui/ReturnToOverviewButton';
 import ThreeDStructureDetail from '../three-d-structures/ThreeDStructureDetail';
 import FabricDetail from './FabricDetail';
+import FabricListItem from './FabricListItem';
 
 const FabricsPage = () => {
   const dispatch = useDispatch();
-
   const spot = useSelector(state => state.spot.selectedSpot);
 
   const [selectedFabric, setSelectedFabric] = useState({});
   const [isDetailView, setIsDetailView] = useState(false);
 
-  const fabricsDictionary = Object.values(LABEL_DICTIONARY.fabrics).reduce(
-    (acc, form) => ({...acc, ...form}), {});
   const FABRIC_SECTIONS = {
     FAULT_ROCK: {title: 'Fault Rock Fabrics', key: 'fault_rock'},
     IGNEOUS: {title: 'Igneous Fabrics', key: 'igneous_rock'},
@@ -47,51 +42,18 @@ const FabricsPage = () => {
   };
 
   const editFabric = (fabric) => {
-    dispatch(setModalVisible({modal: null}));
-    setSelectedFabric(fabric);
-    setIsDetailView(true);
-  };
-
-  const getLabel = (key) => {
-    if (Array.isArray(key)) {
-      const labelsArr = key.map(val => fabricsDictionary[val] || val);
-      return labelsArr.join(', ');
-    }
-    return fabricsDictionary[key] || key.toString().replace('_', ' ');
-  };
-
-  const getFabricTitle = (fabric) => {
-    return fabric.label || getLabel(fabric.type) || '';
-  };
-
-  const renderFabric = (fabric) => {
-    const fabricTitle = getFabricTitle(fabric);
-    const fabricFieldsText = Object.entries(fabric).reduce((acc, [key, value]) => {
-      return key === 'id' ? acc : (acc === '' ? '' : acc + '\n') + getLabel(key) + ': ' + getLabel(value);
-    }, '');
-    return (
-      <ListItem
-        containerStyle={commonStyles.listItem}
-        key={fabric.id}
-        onPress={() => editFabric(fabric)}
-      >
-        <ListItem.Content style={{overflow: 'hidden'}}>
-          <ListItem.Title style={commonStyles.listItemTitle}>{fabricTitle}</ListItem.Title>
-          {fabricFieldsText !== '' && (
-            <ListItem.Subtitle>{fabricFieldsText}</ListItem.Subtitle>
-          )}
-        </ListItem.Content>
-        <ListItem.Chevron/>
-      </ListItem>
-    );
+    batch(() => {
+      setIsDetailView(true);
+      setSelectedFabric(fabric);
+      dispatch(setModalVisible({modal: null}));
+    });
   };
 
   const renderFabricSections = () => {
     let fabricsGrouped = Object.values(FABRIC_SECTIONS).reduce((acc, {title, key}) => {
       const data = key ? spot?.properties?.fabrics?.filter(fabric => fabric.type === key) || []
         : spot?.properties?._3d_structures?.filter(struct => struct.type === 'fabric') || [];
-      const dataSorted = data.slice().sort((a, b) => getFabricTitle(a).localeCompare(getFabricTitle(b)));
-      return [...acc, {title: title, data: dataSorted}];
+      return [...acc, {title: title, data: data.reverse()}];
     }, []);
 
     return (
@@ -99,7 +61,7 @@ const FabricsPage = () => {
         keyExtractor={(item, index) => item + index}
         sections={fabricsGrouped}
         renderSectionHeader={({section: {title}}) => renderSectionHeader(title)}
-        renderItem={({item}) => renderFabric(item)}
+        renderItem={({item}) => <FabricListItem fabric={item} editFabric={editFabric}/>}
         renderSectionFooter={({section}) => {
           return section.data.length === 0 && <ListEmptyText text={'No ' + section.title}/>;
         }}

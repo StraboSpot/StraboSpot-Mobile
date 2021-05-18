@@ -1,13 +1,14 @@
 import React from 'react';
 
 import {Form, MainButtons, useFormHook} from '../form';
+import {FIRST_ORDER_FABRIC_FIELDS} from './fabric.constants';
 
 const IgneousRockFabric = (props) => {
   const [useForm] = useFormHook();
 
   // Relevant keys for quick-entry modal
   const firstKeys = ['label'];
-  const mainButttonsKeys = ['planar_fab', 'lin_fab', 'magmatic_str', 'solid_state_str'];
+  const mainButttonsKeys = FIRST_ORDER_FABRIC_FIELDS.igneous_rock;
   const lastKeys = ['mag_interp_note'];
 
   // Relevant fields for quick-entry modal

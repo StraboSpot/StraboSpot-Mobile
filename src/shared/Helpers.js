@@ -194,11 +194,9 @@ export const isEqual = (a, b) => {
   return lodashIsEqual(a, b);
 };
 
-// Convert a string to title case
+// Convert a string to title case and properly handles (s) in a word by keeping the s lowercase
 export function toTitleCase(str) {
-  return str.toLowerCase().replace(/\b[A-Z|a-z]/g, function (t) {
-    return t.toUpperCase();
-  });
+  return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
 // Used to animate open and close of Settings Panel and Notebook Panel

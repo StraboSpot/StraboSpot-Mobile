@@ -158,6 +158,9 @@ const homeStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  urlText: {
+    fontSize: themes.SMALL_TEXT_SIZE
+  }
 });
 
 export default homeStyles;

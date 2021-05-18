@@ -1,13 +1,12 @@
-import React, {useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import {Alert, Switch, Text, View} from 'react-native';
 
 import {Formik} from 'formik';
 import {ListItem} from 'react-native-elements';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {toTitleCase} from '../../shared/Helpers';
 import SectionDivider from '../../shared/ui/SectionDivider';
-import {Form, LABEL_DICTIONARY, useFormHook} from '../form';
+import {Form, useFormHook} from '../form';
 import {setSidePanelVisible} from '../main-menu-panel/mainMenuPanel.slice';
 import SidePanelHeader from '../main-menu-panel/sidePanel/SidePanelHeader';
 import {updatedProject} from './projects.slice';
@@ -35,11 +34,6 @@ const ProjectDescription = (props) => {
     return () => saveForm();
   }, []);
 
-  // Given a name, get the label for it
-  const getLabel = (key) => {
-    return LABEL_DICTIONARY[key] || toTitleCase(key.replace(/_/g, ' '));
-  };
-
   const saveForm = async () => {
     const formCurrent = formRef.current;
     const publicCurrent = publicRef.current;
@@ -48,7 +42,9 @@ const ProjectDescription = (props) => {
       let newDescriptionValues = JSON.parse(JSON.stringify(formCurrent.values));
       // const newPublicPreferenceValue =
       if (useForm.hasErrors(formCurrent)) {
-        const errorMessages = Object.entries(formCurrent.errors).map(([key, value]) => getLabel(key) + ': ' + value);
+        const errorMessages = Object.entries(formCurrent.errors).map(([key, value]) => (
+          useForm.getLabel(key, formName) + ': ' + value
+        ));
         Alert.alert('Project Description Errors!', 'Changes in the following fields were not saved.'
           + ' Please fix the errors:\n\n' + errorMessages.join('\n'));
         const newValuesWithoutErrors = Object.keys(formCurrent.values).reduce((acc, key) => {
@@ -77,7 +73,7 @@ const ProjectDescription = (props) => {
         headerTitle={'Project Description'}
         backButton={() => {
           console.log('DIRTY', publicRef.current.dirty);
-          if (!publicRef?.current.dirty && !formRef?.current.dirty) {
+          if (!publicRef?.current?.dirty && !formRef?.current?.dirty) {
             props.toastMessage('No Changes Were Made.');
           }
           else props.toastMessage('Changes Saved!');

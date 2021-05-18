@@ -1,4 +1,4 @@
-import {Platform, StyleSheet} from 'react-native';
+import {Platform, Dimensions, StyleSheet} from 'react-native';
 
 import * as themes from '../styles.constants';
 
@@ -18,6 +18,17 @@ const styles = StyleSheet.create({
   imageIcon: {
     width: 65,
     height: 65,
+  },
+  offlineImageIconContainer: {
+    position: 'absolute',
+    top: 10,
+    width: '100%',
+    zIndex: -1,
+    alignItems: 'center',
+  },
+  offlineIcon: {
+    width: 40,
+    height: 40,
   },
   itemSeparator: {
     height: 1,

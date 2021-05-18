@@ -1,13 +1,14 @@
 import React from 'react';
 
 import {Form, FormSlider, MainButtons, useFormHook} from '../form';
+import {FIRST_ORDER_FABRIC_FIELDS} from './fabric.constants';
 
 const MetamRockFabric = (props) => {
   const [useForm] = useFormHook();
 
   // Relevant keys for quick-entry modal
   const firstKeys = ['label'];
-  const mainButttonsKeys = ['planar_fabric', 'linear_fab', 'other_met_fab', 'kinematic_ind'];
+  const mainButttonsKeys = FIRST_ORDER_FABRIC_FIELDS.metamorphic_rock;
   const lastKeys = ['interp_note_meta'];
   const tectoniteTypesKey = 'tectonite_type';
 

@@ -7,6 +7,7 @@ import {useDispatch} from 'react-redux';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
 import imageStyles from '../images/images.styles';
 import useImagesHook from '../images/useImages';
+import {clearedSelectedSpots} from '../spots/spots.slice';
 import useSpotsHook from '../spots/useSpots';
 import {setCurrentImageBasemap} from './maps.slice';
 
@@ -24,6 +25,7 @@ const ImageBaseMaps = (props) => {
     useImages.doesImageExistOnDevice(image.id)
       .then((doesExist) => {
         if (!doesExist) Alert.alert('Missing Image!', 'Unable to find image file on this device.');
+        dispatch(clearedSelectedSpots());
         dispatch(setCurrentImageBasemap(image));
       })
       .catch((e) => console.error('Image not found', e));

@@ -11,9 +11,10 @@ import {PRIMARY_ACCENT_COLOR, PRIMARY_TEXT_COLOR} from '../../shared/styles.cons
 import DragAnimation from '../../shared/ui/DragAmination';
 import Modal from '../../shared/ui/modal/Modal';
 import uiStyles from '../../shared/ui/ui.styles';
-import {Form, LABEL_DICTIONARY, useFormHook} from '../form';
+import {Form, useFormHook} from '../form';
 import {setModalValues} from '../home/home.slice';
 import {editedSpotProperties} from '../spots/spots.slice';
+import {FABRIC_TYPES} from './fabric.constants';
 import FaultRockFabric from './FaultRockFabric';
 import IgneousRockFabric from './IgneousRockFabric';
 import MetamRockFabric from './MetamRockFabric';
@@ -32,9 +33,7 @@ const FabricModal = (props) => {
 
   const formRef = useRef(null);
 
-  const fabricsDictionary = Object.values(LABEL_DICTIONARY.fabrics).reduce(
-    (acc, form) => ({...acc, ...form}), {});
-  const types = ['fault_rock', 'igneous_rock', 'metamorphic_rock'];
+  const types = Object.keys(FABRIC_TYPES);
 
   useEffect(() => {
     return () => {
@@ -51,14 +50,6 @@ const FabricModal = (props) => {
     setChoices(useForm.getChoices(initialValues.type ? ['fabrics', initialValues.type] : defaultFormName));
   }, [modalValues]);
 
-  const getLabel = (key) => {
-    if (Array.isArray(key)) {
-      const labelsArr = key.map(val => fabricsDictionary[val] || val);
-      return labelsArr.join(', ');
-    }
-    return fabricsDictionary[key] || key.toString().replace('_', ' ');
-  };
-
   const onFabricTypePress = (i) => {
     setSelectedTypeIndex(i);
     const type = types[i];
@@ -74,7 +65,7 @@ const FabricModal = (props) => {
         <ButtonGroup
           selectedIndex={selectedTypeIndex}
           onPress={onFabricTypePress}
-          buttons={['Fault', 'Igneous', 'Metam.']}
+          buttons={Object.values(FABRIC_TYPES)}
           containerStyle={{height: 40, borderRadius: 10}}
           buttonStyle={{padding: 5}}
           textStyle={{color: PRIMARY_TEXT_COLOR}}
@@ -84,7 +75,6 @@ const FabricModal = (props) => {
             formRef={formRef}
             survey={survey}
             choices={choices}
-            getLabel={getLabel}
             setChoicesViewKey={setChoicesViewKey}
             formName={['fabrics', types[selectedTypeIndex]]}
             formProps={formProps}
@@ -95,7 +85,6 @@ const FabricModal = (props) => {
             formRef={formRef}
             survey={survey}
             choices={choices}
-            getLabel={getLabel}
             setChoicesViewKey={setChoicesViewKey}
             formName={['fabrics', types[selectedTypeIndex]]}
             formProps={formProps}
@@ -106,7 +95,6 @@ const FabricModal = (props) => {
             formRef={formRef}
             survey={survey}
             choices={choices}
-            getLabel={getLabel}
             setChoicesViewKey={setChoicesViewKey}
             formName={['fabrics', types[selectedTypeIndex]]}
             formProps={formProps}

@@ -10,7 +10,7 @@ import {getNewId, isEmpty} from '../../shared/Helpers';
 import FlatListItemSeparator from '../../shared/ui/FlatListItemSeparator';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
 import SectionDivider from '../../shared/ui/SectionDivider';
-import {LABEL_DICTIONARY, SelectInputField} from '../form';
+import {SelectInputField, useFormHook} from '../form';
 import {NOTEBOOK_PAGES} from '../notebook-panel/notebook.constants';
 import {setNotebookPageVisible} from '../notebook-panel/notebook.slice';
 import ReturnToOverviewButton from '../notebook-panel/ui/ReturnToOverviewButton';
@@ -31,9 +31,10 @@ const MineralsPage = () => {
 
   const preFormRef = useRef(null);
 
+  const [useForm] = useFormHook();
   const [useSpots] = useSpotsHook();
 
-  const petDictionary = Object.values(LABEL_DICTIONARY.pet).reduce((acc, form) => ({...acc, ...form}), {});
+  const formName = ['pet', 'minerals'];
 
   useEffect(() => {
     console.log('UE Minerals: spot changed to', spot);
@@ -68,14 +69,6 @@ const MineralsPage = () => {
   const editMineral = (mineral) => {
     setSelectedMineral(mineral);
     setMineralView(MINERAL_VIEW.DETAIL);
-  };
-
-  const getLabel = (key) => {
-    if (Array.isArray(key)) {
-      const labelsArr = key.map(val => petDictionary[val] || val);
-      return labelsArr.join(', ');
-    }
-    return petDictionary[key] || key;
   };
 
   const getMineralTitle = (mineral) => {
@@ -117,7 +110,8 @@ const MineralsPage = () => {
   const renderMineral = (mineral) => {
     const mineralTitle = getMineralTitle(mineral);
     const mineralFieldsText = Object.entries(mineral).reduce((acc, [key, value]) => {
-      return key === 'id' ? acc : (acc === '' ? '' : acc + '\n') + getLabel(key) + ': ' + getLabel(value);
+      return key === 'id' ? acc : (acc === '' ? '' : acc + '\n') + useForm.getLabel(key, formName) + ': '
+        + useForm.getLabels(value, formName);
     }, '');
     return (
       <ListItem

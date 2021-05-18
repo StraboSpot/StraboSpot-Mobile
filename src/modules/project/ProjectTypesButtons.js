@@ -13,10 +13,6 @@ const ProjectTypesButtons = (props) => {
   const user = useSelector(state => state.user);
   const deviceBackUpDirectoryExists = useSelector(state => state.project.deviceBackUpDirectoryExists);
 
-  useEffect(() => {
-    console.log('DevdeviceBackUpDirectoryExists: ', deviceBackUpDirectoryExists);
-  }, [deviceBackUpDirectoryExists]);
-
   return (
     <View>
       <Button

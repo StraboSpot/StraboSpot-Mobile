@@ -1242,7 +1242,7 @@ const Map = React.forwardRef((props, ref) => {
       // spot selected is on geomap and mapMode is main-map, zoomToSpot in sync mode.
       else useMaps.zoomToSpots([selectedSpot], mapRef.current, cameraRef.current);
     }
-    else if (selectedSpot && selectedSpot.properties.image_basemap) {
+    else if (!isEmpty(selectedSpot) && selectedSpot.properties.image_basemap) {
       //spot selected is on imagebasemap, either if not on imagebasemap
       // or not on same imagebasemap as the selectedspot's imagebasemap,
       // then switch to corresponding imagebasemap and zoomToSpot in asyncMode

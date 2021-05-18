@@ -100,7 +100,7 @@ const ProjectList = (props) => {
       else {
         dispatch(clearedStatusMessages());
         dispatch(setStatusMessagesModalVisible(true));
-        await useDownload.initializeDownload(project, props.source);
+        await useDownload.initializeDownload(project);
       }
     }
   };

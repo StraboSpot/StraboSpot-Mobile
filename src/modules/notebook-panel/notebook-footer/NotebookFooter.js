@@ -17,6 +17,8 @@ const NotebookFooter = props => {
   ));
   const [isMorePagesMenuVisible, setIsMorePagesMenuVisible] = useState(false);
 
+  const toolbarIconsKeys = toolbarIcons.filter(i => Object.values(NOTEBOOK_PAGES).includes(i));
+
   const getPageIcon = (page) => {
     const pageKey = Object.keys(NOTEBOOK_PAGES).find(key => NOTEBOOK_PAGES[key] === page);
     if (notebookPageVisible === page
@@ -29,8 +31,8 @@ const NotebookFooter = props => {
 
   return (
     <React.Fragment>
-      <View style={toolbarIcons.length <= 6 ? footerStyle.footerIconContainer : footerStyle.footerIconContainerWrap}>
-        {toolbarIcons.map(icon => (
+      <View style={toolbarIconsKeys.length <= 6 ? footerStyle.footerIconContainer : footerStyle.footerIconContainerWrap}>
+        {toolbarIconsKeys.map(icon => (
           <IconButton
             source={getPageIcon(icon)}
             onPress={() => props.openPage(icon)}

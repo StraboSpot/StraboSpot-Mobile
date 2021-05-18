@@ -8,22 +8,27 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   buttonStyle: {
-    borderRadius: 30,
+    paddingRight: 50,
+    paddingLeft: 50,
   },
   buttonContainer: {
     marginTop: 10,
-    width: 300,
+    borderRadius: 30,
+
   },
   checkBoxText: {
     color: 'white',
   },
   input: {
     width: 350,
+    fontSize: themes.PRIMARY_TEXT_SIZE,
+    fontWeight: '500',
+    height: 55,
     backgroundColor: themes.SECONDARY_BACKGROUND_COLOR,
     margin: 10,
+    color: 'black',
     padding: 8,
     borderRadius: 14,
-    borderColor: 'red',
   },
   inputContainerGroup: {
     alignItems: 'center',
@@ -42,10 +47,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Arial-BoldMT',
   },
   titleContainer: {
+    alignItems: 'center',
     paddingBottom: 60,
   },
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   version: {
     textAlign: 'center',

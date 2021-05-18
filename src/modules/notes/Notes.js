@@ -100,9 +100,8 @@ const Notes = () => {
         enableReinitialize={true}
       >
         {() => (
-          <View>
             <ListItem containerStyle={commonStyles.listItemFormField}>
-              <ListItem.Content>
+              <ListItem.Content >
                 <Field
                   component={TextInputField}
                   name={'note'}
@@ -112,7 +111,6 @@ const Notes = () => {
                 />
               </ListItem.Content>
             </ListItem>
-          </View>
         )}
       </Formik>
     </View>

@@ -5,21 +5,24 @@ import {Formik} from 'formik';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getNewId, isEmpty, truncateText} from '../../shared/Helpers';
-import {Form, LABEL_DICTIONARY, useFormHook} from '../form';
+import {Form, useFormHook} from '../form';
 import {MODALS} from '../home/home.constants';
 import {addedTagToSelectedSpot, setSelectedTag, updatedProject} from '../project/projects.slice';
 import {tagsStyles} from './index';
 
 const useTags = () => {
-  const [useForm] = useFormHook();
   const dispatch = useDispatch();
-  const formRef = useRef(null);
   const addTagToSelectedSpot = useSelector(state => state.project.addTagToSelectedSpot);
   const modalVisible = useSelector(state => state.home.modalVisible);
   const projectTags = useSelector(state => state.project.project.tags || []);
   const selectedSpot = useSelector(state => state.spot.selectedSpot);
   const selectedTag = useSelector(state => state.project.selectedTag);
-  const tagsDictionary = LABEL_DICTIONARY.project.tags;
+
+  const formRef = useRef(null);
+
+  const [useForm] = useFormHook();
+
+  const formName = ['project', 'tags'];
 
   const addSpotsToTags = (tagsList, spotsList) => {
     let tagsToUpdate = [];
@@ -71,7 +74,7 @@ const useTags = () => {
   };
 
   const getLabel = (key) => {
-    if (key) return tagsDictionary[key] || key.replace(/_/g, ' ');
+    if (key) return useForm.getLabel(key, formName);
     return 'No Type Specified';
   };
 
@@ -127,7 +130,6 @@ const useTags = () => {
   };
 
   const renderTagForm = () => {
-    const formName = ['project', 'tags'];
     return (
       <View style={{flex: 1}}>
         <Formik
