@@ -42,10 +42,14 @@ const useForm = () => {
 
   // Get the fields relevant to a given field, meaning the field itself and any fields related by skip-logic
   const getRelevantFields = (survey, key) => {
+    let isGroup = false;
     let relevantKeys = [key];
     let relevantFields = survey.reduce((acc, f) => {
-      if (relevantKeys.includes(f.name) || !isEmpty(relevantKeys.filter(k => f.relevant?.includes('${' + k + '}')))) {
+      if (relevantKeys.includes(f.name) || !isEmpty(relevantKeys.filter(k => f.relevant?.includes('${' + k + '}')))
+      || isGroup) {
         relevantKeys = [...relevantKeys, f.name];
+        if (f.type === 'begin_group') isGroup = true;
+        if (f.type === 'end_group') isGroup = false;
         return [...acc, f];
       }
       else return acc;

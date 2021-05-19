@@ -91,7 +91,8 @@ const ThreeDStructuresModal = (props) => {
   const renderNotebookThreeDStructuresModalContent = () => {
     return (
       <Modal
-        close={props.close}
+        close={() => choicesViewKey ? setChoicesViewKey(null) : props.close()}
+        title={choicesViewKey && 'Done'}
         textStyle={{fontWeight: 'bold'}}
         onPress={props.onPress}
         style={uiStyles.modalPosition}
@@ -110,15 +111,7 @@ const ThreeDStructuresModal = (props) => {
             );
           }}
         </Formik>
-        {choicesViewKey ? (
-            <Button
-              titleStyle={{color: PRIMARY_ACCENT_COLOR}}
-              title={'Done'}
-              type={'save'}
-              onPress={() => setChoicesViewKey(null)}
-            />
-          )
-          : <SaveButton title={'Save Fabric'} onPress={save3DStructure}/>}
+        {!choicesViewKey && <SaveButton title={'Save Fabric'} onPress={save3DStructure}/>}
       </Modal>
     );
   };

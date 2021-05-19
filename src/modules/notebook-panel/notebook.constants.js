@@ -11,7 +11,7 @@ export const PRIMARY_NOTEBOOK_PAGES = {
 
 export const SECONDARY_NOTEBOOK_PAGES = {
   THREE_D_STRUCTURES: '3D Structures',
-  // FABRICS: 'Fabrics',
+  FABRICS: 'Fabrics',
   OTHER_FEATURES: 'Other Features',
   // RELATIONSHIPS: 'Relationships',
   DATA: 'Data',

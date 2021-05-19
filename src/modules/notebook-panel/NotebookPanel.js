@@ -113,7 +113,7 @@ const NotebookPanel = (props) => {
 
             {/*Secondary Notebook Pages*/}
             {pageVisible === SECONDARY_NOTEBOOK_PAGES.THREE_D_STRUCTURES && <ThreeDStructuresPage/>}
-            {/*{pageVisible === SECONDARY_NOTEBOOK_PAGES.FABRICS && <FabricsPage/>}*/}
+            {pageVisible === SECONDARY_NOTEBOOK_PAGES.FABRICS && <FabricsPage/>}
             {pageVisible === SECONDARY_NOTEBOOK_PAGES.OTHER_FEATURES && <OtherFeaturesPage/>}
             {/*{pageVisible === SECONDARY_NOTEBOOK_PAGES.RELATIONSHIPS && <PlaceholderPage/>}*/}
             {pageVisible === SECONDARY_NOTEBOOK_PAGES.DATA && <ExternalData/>}

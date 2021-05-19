@@ -9,7 +9,7 @@ const IconButton = props => {
     <TouchableOpacity onPress={props.onPress} onLongPress={props.onLongPress}>
       <Image
         containerStyle={props.containerStyle}
-        style={uiStyles.imageIcon}
+        style={[uiStyles.imageIcon, props.style]}
         source={props.source}
       />
     </TouchableOpacity>

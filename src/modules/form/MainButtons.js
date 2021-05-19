@@ -14,17 +14,23 @@ const MainButtons = (props) => {
     <React.Fragment>
       <View style={{flex: 1, alignItems: 'center'}}>
         <Text
-          style={props.formRef.current?.values[key] ? formStyles.formButtonSelectedTitle : formStyles.formButtonTitle}>
+          style={props.formRef.current?.values[key] ? formStyles.formButtonSelectedTitle : [formStyles.formButtonTitle, props.titleStyle]}>
           {useForm.getLabel(key, props.formName)}
         </Text>
-        {props.formRef.current?.values[key] && (
-          <Text style={{...formStyles.formButtonSelectedTitle, fontWeight: 'bold'}}>
-            {truncateText(useForm.getLabels(props.formRef.current.values[key], props.formName), 23)}
-          </Text>
-        )}
+        {props.subtitleText ? subtitleText(props.subtitleText)
+          : props.formRef.current?.values[key]
+          && subtitleText(useForm.getLabels(props.formRef.current.values[key], props.formName))}
       </View>
     </React.Fragment>
   );
+
+  const subtitleText = (text) => {
+    return (
+      <Text style={{...formStyles.formButtonSelectedTitle, fontWeight: 'bold'}}>
+        {truncateText(text, 23)}
+      </Text>
+    );
+  };
 
   return (
     <View style={formStyles.mainButtonsContainer}>
