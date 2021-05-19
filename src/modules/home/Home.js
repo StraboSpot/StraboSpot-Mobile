@@ -144,6 +144,10 @@ const Home = () => {
   const toastRef = useRef(null);
 
   useEffect(() => {
+    Alert.alert('This Test Flight version will NO LONGER be available after 5/24/2021. '
+      + 'Please go to the App Store and download from there. '
+      + 'Upload any data you want to save and remove this Test Flight version before downloading from '
+      + 'the App Store.\n\nThanks for your help and feedback!\n\n-StraboSpot Team');
     // useDevice.loadOfflineMaps().catch();
     NetInfo.addEventListener(status => {
       setIsConnectedStatus(status.isInternetReachable);
