@@ -36,6 +36,7 @@ const TagsNotebookModal = (props) => {
       <React.Fragment>
         <Modal
           style={{width: 285}}
+          close={props.close}
           onPress={props.onPress}
         >
           <View style={[modalStyle.textContainer]}>
@@ -45,7 +46,7 @@ const TagsNotebookModal = (props) => {
               type={'outline'}
             />
           </View>
-          <TagsModal/>
+          <TagsModal isFeatureLevelTagging={props.isFeatureLevelTagging}/>
         </Modal>
         <TagDetailModal
           isVisible={isDetailModalVisible}
@@ -54,8 +55,7 @@ const TagsNotebookModal = (props) => {
       </React.Fragment>
     );
   };
-
-  if (modalVisible === MODAL_KEYS.NOTEBOOK.TAGS && !isEmpty(selectedSpot)) {
+  if (modalVisible ===  MODAL_KEYS.NOTEBOOK.TAGS || modalVisible === MODAL_KEYS.OTHER.FEATURE_TAGS && !isEmpty(selectedSpot)) {
     if (Platform.OS === 'android') return renderTagsModalContent();
     else return <DragAnimation>{renderTagsModalContent()}</DragAnimation>;
   }

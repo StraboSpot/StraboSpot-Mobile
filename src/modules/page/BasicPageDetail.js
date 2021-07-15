@@ -11,12 +11,13 @@ import SaveAndCloseButton from '../../shared/ui/SaveAndCloseButtons';
 import {Form, useFormHook} from '../form';
 import usePetrologyHook from '../petrology/usePetrology';
 import {editedSpotProperties} from '../spots/spots.slice';
+import {useTagsHook} from '../tags';
 import {PAGE_KEYS} from './page.constants';
 
 const BasicPageDetail = (props) => {
   const dispatch = useDispatch();
   const spot = useSelector(state => state.spot.selectedSpot);
-
+  const [useTags] = useTagsHook();
   const [useForm] = useFormHook();
   const usePetrology = usePetrologyHook();
 
@@ -64,6 +65,7 @@ const BasicPageDetail = (props) => {
   };
 
   const deleteFeature = () => {
+    useTags.deleteFeatureTags([props.selectedFeature]);
     if (groupKey === 'pet') usePetrology.deletePetFeature(pageKey, spot, props.selectedFeature);
     else {
       let editedPageData = pageData ? JSON.parse(JSON.stringify(pageData)) : [];

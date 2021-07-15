@@ -173,6 +173,23 @@ const useSpots = () => {
     return activeSpots;
   };
 
+  const getAllFeaturesFromAllSpots = () => {
+    let allFeatures = [];
+    let featureElements = ['orientation_data', 'other_features', 'samples', '_3d_structures'];
+    Object.values(spots).forEach(spot => {
+      featureElements.map(featureElement => {
+        if (spot.properties[featureElement]) {
+          let featuresCopy = JSON.parse(JSON.stringify(spot.properties[featureElement]));
+          featuresCopy.map(featureCopy => {
+            featureCopy.parentSpotId = spot.properties.id;
+          });
+          allFeatures = allFeatures.concat(featuresCopy);
+        }
+      });
+    });
+    return JSON.parse(JSON.stringify(allFeatures)).slice(0,25);
+  };
+
   const getImageBasemaps = () => {
     return Object.values(getActiveSpotsObj()).reduce((acc, spot) => {
       const imageBasemaps = spot.properties.images
@@ -311,6 +328,7 @@ const useSpots = () => {
     createSpot: createSpot,
     deleteSpot: deleteSpot,
     getActiveSpotsObj: getActiveSpotsObj,
+    getAllFeaturesFromAllSpots: getAllFeaturesFromAllSpots,
     getImageBasemaps: getImageBasemaps,
     getMappableSpots: getMappableSpots,
     getRootSpot: getRootSpot,

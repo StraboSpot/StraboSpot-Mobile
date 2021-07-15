@@ -14,10 +14,12 @@ import {formStyles, SelectInputField, TextInputField, useFormHook} from '../form
 import {DEFAULT_GEOLOGIC_TYPES} from '../project/project.constants';
 import {addedCustomFeatureTypes} from '../project/projects.slice';
 import {editedSpotProperties} from '../spots/spots.slice';
+import {useTagsHook} from '../tags';
 
 const OtherFeatureDetail = (props) => {
   const dispatch = useDispatch();
   const [useForm] = useFormHook();
+  const [useTags] = useTagsHook();
   const spot = useSelector(state => state.spot.selectedSpot);
   const projectFeatures = useSelector(state => state.project.project.other_features);
 
@@ -64,6 +66,7 @@ const OtherFeatureDetail = (props) => {
     let existingFeature = otherFeatures.filter(feature => feature.id === props.selectedFeature.id);
     if (!isEmpty(existingFeature)) {
       delete existingFeature[0];
+      useTags.deleteFeatureTags([props.selectedFeature]);
       otherFeatures = otherFeatures.filter(feature => feature.id !== props.selectedFeature.id);
       dispatch(editedSpotProperties({field: 'other_features', value: otherFeatures}));
     }

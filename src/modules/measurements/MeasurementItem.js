@@ -1,10 +1,15 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
+import {Text, View} from 'react-native';
 
 import {ListItem} from 'react-native-elements';
+import {useSelector} from 'react-redux';
 
 import commonStyles from '../../shared/common.styles';
 import {isEmpty, padWithLeadingZeros, toTitleCase} from '../../shared/Helpers';
+import * as themes from '../../shared/styles.constants';
+import FeatureTagsList from '../../shared/ui/FeatureTagsList';
 import useFormHook from '../form/useForm';
+import {useTagsHook} from '../tags';
 import {FIRST_ORDER_CLASS_FIELDS, SECOND_ORDER_CLASS_FIELDS} from './measurements.constants';
 import useMeasurementsHook from './useMeasurements';
 
@@ -13,6 +18,14 @@ const MeasurementItem = (props) => {
 
   const [useMeasurements] = useMeasurementsHook();
   const [useForm] = useFormHook();
+  const spot = useSelector(state => state.spot.selectedSpot);
+  const [useTags] = useTagsHook();
+  const isMultipleFeaturesTaggingEnabled = useSelector(state => state.project.isMultipleFeaturesTaggingEnabled);
+  const [featureSelectedForTagging, setFeatureSelectedForTagging] = useState(false);
+
+  useEffect(() => {
+    if (!isMultipleFeaturesTaggingEnabled) setFeatureSelectedForTagging(false);
+  }, [isMultipleFeaturesTaggingEnabled]);
 
   const getTypeText = (item) => {
     let firstOrderClass = FIRST_ORDER_CLASS_FIELDS.find(firstOrderClassField => item[firstOrderClassField]);
@@ -59,31 +72,35 @@ const MeasurementItem = (props) => {
     return measurementText === '' ? '?' : measurementText;
   };
 
+  const onMeasurementPress = () => {
+    if (isMultipleFeaturesTaggingEnabled) setFeatureSelectedForTagging(useTags.setFeaturesSelectedForMultiTagging(props.item));
+    else props.onPress();
+  };
+
   return (
     <React.Fragment>
       {typeof (props.item) !== 'undefined' && (
         <ListItem
           containerStyle={props.selectedIds.includes(props.item.id) ? commonStyles.listItemInverse
-            : commonStyles.listItem}
+            : [commonStyles.listItem, {
+              backgroundColor: featureSelectedForTagging
+                ? themes.PRIMARY_ACCENT_COLOR : themes.SECONDARY_BACKGROUND_COLOR,
+            }]}
           key={props.item.id}
-          onPress={() => props.onPress()}
+          onPress={() => onMeasurementPress()}
           pad={5}
         >
           <ListItem.Content>
             <ListItem.Title
               style={props.selectedIds.includes(props.item.id) ? commonStyles.listItemTitleInverse
                 : commonStyles.listItemTitle}
-            >
-              {getMeasurementText(props.item)}
+             >
+              <View style={{flexDirection: 'row', alignItems:'center'}}>
+                <Text style={{width:'50%'}}>{getMeasurementText(props.item)}</Text>
+                <Text style={{width:'50%'}}>{getTypeText(props.item)}</Text>
+              </View>
             </ListItem.Title>
-          </ListItem.Content>
-          <ListItem.Content>
-            <ListItem.Title
-              style={props.selectedIds.includes(props.item.id) ? commonStyles.listItemTitleInverse
-                : commonStyles.listItemTitle}
-            >
-              {getTypeText(props.item)}
-            </ListItem.Title>
+            <FeatureTagsList spotId={spot.properties.id} featureId={props.item.id}/>
           </ListItem.Content>
           <ListItem.Chevron/>
         </ListItem>

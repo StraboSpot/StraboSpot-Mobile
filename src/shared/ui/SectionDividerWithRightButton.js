@@ -16,6 +16,7 @@ const SectionDividerWithRightButton = (props) => {
         titleStyle={commonStyles.standardButtonText}
         type={'clear'}
         onPress={props.onPress}
+        disabled={props.disabled}
       />
     </View>
   );

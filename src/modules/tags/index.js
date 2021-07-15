@@ -1,5 +1,6 @@
 export {default as Tags} from './Tags';
 export {default as TagAddRemoveSpots} from './AddRemoveTagSpots';
+export {default as TagAddRemoveFeatures} from './AddRemoveTagFeatures';
 export {default as TagsAtSpotList} from './TagsAtSpotList';
 export {default as TagDetailModal} from './TagDetailModal';
 export {default as TagDetailSidePanel} from './TagDetailSidePanel';

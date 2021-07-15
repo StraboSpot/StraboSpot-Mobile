@@ -37,7 +37,7 @@ import ProjectDescription from '../project/ProjectDescription';
 import useProjectHook from '../project/useProject';
 import {clearedSelectedSpots} from '../spots/spots.slice';
 import useSpotsHook from '../spots/useSpots';
-import {TagAddRemoveSpots, TagDetailSidePanel} from '../tags';
+import {TagAddRemoveFeatures, TagAddRemoveSpots, TagDetailSidePanel} from '../tags';
 import UserProfile from '../user/UserProfilePage';
 import BackupModal from './home-modals/BackupModal';
 import BackUpOverwriteModal from './home-modals/BackUpOverwriteModal';
@@ -446,6 +446,8 @@ const Home = () => {
         return <TagDetailSidePanel openNotebookPanel={(pageView) => openNotebookPanel(pageView)}/>;
       case SIDE_PANEL_VIEWS.TAG_ADD_REMOVE_SPOTS:
         return <TagAddRemoveSpots/>;
+      case SIDE_PANEL_VIEWS.TAG_ADD_REMOVE_FEATURES:
+        return <TagAddRemoveFeatures/>;
       case SIDE_PANEL_VIEWS.USER_PROFILE:
         return <UserProfile toast={(message) => toastRef.current.show(message)}/>;
     }

@@ -14,6 +14,7 @@ const initialProjectState = {
     source: '',
   },
   selectedTag: {},
+  isMultipleFeaturesTaggingEnabled: false,
   addTagToSelectedSpot: false,
 };
 
@@ -115,6 +116,9 @@ const projectSlice = createSlice({
     setSelectedTag(state, action) {
       state.selectedTag = action.payload;
     },
+    setMultipleFeaturesTaggingEnabled(state, action) {
+      state.isMultipleFeaturesTaggingEnabled = action.payload;
+    },
     setUseMeasurementTemplates(state, action) {
       state.project.templates.useMeasurementTemplates = action.payload;
     },
@@ -168,6 +172,7 @@ export const {
   setSelectedDataset,
   setSelectedProject,
   setSelectedTag,
+  setMultipleFeaturesTaggingEnabled,
   setUseContinuousTagging,
   setUseMeasurementTemplates,
   updatedDatasetProperties,

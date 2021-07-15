@@ -41,5 +41,6 @@ export const SIDE_PANEL_VIEWS = {
   PROJECT_DESCRIPTION: 'project description',
   TAG_DETAIL: 'tag detail',
   TAG_ADD_REMOVE_SPOTS: 'add remove tag spots',
+  TAG_ADD_REMOVE_FEATURES: 'add remove tag features',
   USER_PROFILE: 'userProfile',
 };

@@ -23,7 +23,7 @@ const AddRemoveTagSpots = () => {
     return (
       <ListItem
         containerStyle={commonStyles.listItem}
-        onPress={() => useTags.addRemoveSpotFromTag(spot.properties.id)}
+        onPress={() => useTags.addRemoveSpotFromTag(spot.properties.id,selectedTag)}
       >
         <Avatar source={useSpots.getSpotGemometryIconSource(spot)}
                 placeholderStyle={{backgroundColor: 'transparent'}}
@@ -34,7 +34,7 @@ const AddRemoveTagSpots = () => {
         </ListItem.Content>
         <ListItem.CheckBox
           checked={selectedTag.spots && selectedTag.spots.includes(spot.properties.id)}
-          onPress={() => useTags.addRemoveSpotFromTag(spot.properties.id)}
+          onPress={() => useTags.addRemoveSpotFromTag(spot.properties.id,selectedTag)}
         />
       </ListItem>
     );

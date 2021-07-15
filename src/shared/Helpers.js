@@ -19,13 +19,13 @@ export const csvToArray = (strData, strDelimiter) => {
   const objPattern = new RegExp(
     (
       // Delimiters.
-      '(\\' + strDelimiter + '|\\r?\\n|\\r|^)' +
+      '(\\' + strDelimiter + '|\\r?\\n|\\r|^)'
 
       // Quoted fields.
-      '(?:"([^"]*(?:""[^"]*)*)"|' +
+      + '(?:"([^"]*(?:""[^"]*)*)"|'
 
       // Standard fields.
-      '([^"\\' + strDelimiter + '\\r\\n]*))'
+      + '([^"\\' + strDelimiter + '\\r\\n]*))'
     ),
     'gi',
   );
@@ -46,8 +46,8 @@ export const csvToArray = (strData, strDelimiter) => {
     // field delimiter. If id does not, then we know
     // that this delimiter is a row delimiter.
     if (
-      strMatchedDelimiter.length &&
-      strMatchedDelimiter !== strDelimiter
+      strMatchedDelimiter.length
+      && strMatchedDelimiter !== strDelimiter
     ) {
       // Since we have reached a new row of data,
       // add an empty row to our data array.
@@ -75,6 +75,34 @@ export const csvToArray = (strData, strDelimiter) => {
   }
   // Return the parsed data.
   return (arrData);
+};
+
+export const deepFindFeatureById = (obj, id) => {
+  //Early return
+  if (isEmpty(obj)) return null;
+  if (obj.id === id) return obj;
+  let result, p;
+  for (p in obj) {
+    if (obj.hasOwnProperty(p) && typeof obj[p] === 'object') {
+      result = deepFindFeatureById(obj[p], id);
+      if (result) return result;
+    }
+  }
+  return result;
+};
+
+export const deepFindFeatureTypeById = (obj, id) => {
+  //Early return
+  if (isEmpty(obj)) return null;
+  if (obj.id === id) return obj;
+  let result, p;
+  for (p in obj) {
+    if (obj.hasOwnProperty(p) && typeof obj[p] === 'object') {
+      result = deepFindFeatureTypeById(obj[p], id);
+      if (result) return p;
+    }
+  }
+  return result;
 };
 
 export const getDimensions = () => {

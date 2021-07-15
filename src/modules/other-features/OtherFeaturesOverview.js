@@ -6,6 +6,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import FlatListItemSeparator from '../../shared/ui/FlatListItemSeparator';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
 import {setNotebookPageVisible} from '../notebook-panel/notebook.slice';
+import {setSelectedAttributes} from '../spots/spots.slice';
 import OtherFeatureItem from './OtherFeatureItem';
 
 const OtherFeaturesOverview = (props) => {
@@ -16,7 +17,10 @@ const OtherFeaturesOverview = (props) => {
     return (
       <OtherFeatureItem
         feature={feature}
-        editFeature={() => dispatch(setNotebookPageVisible(props.page.key))}
+        editFeature={() => {
+          dispatch(setNotebookPageVisible(props.page.key));
+          dispatch(setSelectedAttributes([feature]));
+        }}
       />
     );
   };

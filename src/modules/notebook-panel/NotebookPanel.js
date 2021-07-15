@@ -13,8 +13,9 @@ import SectionDivider from '../../shared/ui/SectionDivider';
 import {setModalVisible} from '../home/home.slice';
 import Overview from '../page/Overview';
 import {NOTEBOOK_PAGES, PAGE_KEYS} from '../page/page.constants';
+import {setMultipleFeaturesTaggingEnabled} from '../project/projects.slice';
 import {useSpotsHook} from '../spots';
-import {setSelectedSpot} from '../spots/spots.slice';
+import {setSelectedAttributes, setSelectedSpot} from '../spots/spots.slice';
 import NotebookFooter from './notebook-footer/NotebookFooter';
 import NotebookHeader from './notebook-header/NotebookHeader';
 import {setNotebookPageVisible} from './notebook.slice';
@@ -46,6 +47,11 @@ const NotebookPanel = (props) => {
       console.log('NB Keyboard Listeners Removed');
     };
   }, [isNotebookPanelVisible]);
+
+  useEffect(() => {
+    dispatch(setSelectedAttributes([]));
+    dispatch(setMultipleFeaturesTaggingEnabled(false));
+  }, [pageVisible, spot]);
 
   const handleKeyboardDidShowNotebook = (event) => Helpers.handleKeyboardDidShow(event, TextInputState, textInputAnimate);
 

@@ -57,6 +57,9 @@ const TagDetailSidePanel = (props) => {
           addRemoveSpots={() => {
             dispatch(setSidePanelVisible({bool: true, view: SIDE_PANEL_VIEWS.TAG_ADD_REMOVE_SPOTS}));
           }}
+          addRemoveFeatures={() => {
+            dispatch(setSidePanelVisible({bool: true, view: SIDE_PANEL_VIEWS.TAG_ADD_REMOVE_FEATURES}));
+          }}
           setIsDetailModalVisible={() => setIsDetailModalVisible(true)}
         />
       </View>

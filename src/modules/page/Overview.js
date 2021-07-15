@@ -49,13 +49,11 @@ const Overview = (props) => {
               isSectionOverviewVisible = true;
             }
             break;
-          // case 'data':
-          //   if (!isEmpty(spot.properties?.data?.urls)) {
-          //     updatedSections.push({title: 'Links to Web Resources', data: [<DataWrapper spot={spot} editable={false} urlData={true}/>]});
-          //   }
-          //   if (!isEmpty(spot.properties?.data?.tables)) {
-          //     updatedSections.push({title: 'Tables', data: [<DataWrapper spot={spot} editable={false} urlData={false}/>]});
-          //   }
+          case 'data':
+            if (!isEmpty(spot.properties?.data?.urls) || !isEmpty(spot.properties?.data?.tables)) {
+              isSectionOverviewVisible = true;
+            }
+            break;
           default:
             if (spot.properties && spot.properties[page.key]) isSectionOverviewVisible = true;
         }

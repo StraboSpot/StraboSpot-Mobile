@@ -1,21 +1,38 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {FlatList, View} from 'react-native';
 
 import {Button} from 'react-native-elements';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {getNewId} from '../../shared/Helpers';
 import FlatListItemSeparator from '../../shared/ui/FlatListItemSeparator';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
-import ReturnToOverviewButton from '../page/ui/ReturnToOverviewButton';
+import NotebookContentTopSection from '../../shared/ui/NotebookContentTopSection';
+import {setSelectedAttributes} from '../spots/spots.slice';
 import OtherFeatureDetail from './OtherFeatureDetail';
 import OtherFeatureItem from './OtherFeatureItem';
 
 const OtherFeaturesPage = () => {
   const [isFeatureDetailVisible, setIsFeatureDetailVisible] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState({});
+  const dispatch = useDispatch();
   const spot = useSelector(state => state.spot.selectedSpot);
   const otherFeatures = useSelector(state => state.project.project.other_features);
+  const isMultipleFeaturesTaggingEnabled = useSelector(state => state.project.isMultipleFeaturesTaggingEnabled);
+  const selectedAttributes = useSelector(state => state.spot.selectedAttributes);
+
+  useEffect(() => {
+    return () => dispatch(setSelectedAttributes([]));
+  }, []);
+
+/*  useEffect(() => {
+    if (!isEmpty(selectedAttributes) && !isMultipleFeaturesTaggingEnabled) {
+      //setSelectedFeature(selectedAttributes[0]);
+      dispatch(setSelectedAttributes([]));
+      //setIsFeatureDetailVisible(true);
+    }
+    else setSelectedFeature({id: getNewId()});
+  }, [spot]);*/
 
   const addFeature = () => {
     setSelectedFeature({id: getNewId()});
@@ -35,14 +52,16 @@ const OtherFeaturesPage = () => {
 
   return (
     <React.Fragment>
-      {!isFeatureDetailVisible && <ReturnToOverviewButton/>}
       {!isFeatureDetailVisible && (
         <View>
-          <Button
-            title={'+ Add Feature'}
-            type={'clear'}
-            onPress={addFeature}
-          />
+          <NotebookContentTopSection/>
+          {!isMultipleFeaturesTaggingEnabled && (
+            <Button
+              title={'+ Add Feature'}
+              type={'clear'}
+              onPress={addFeature}
+            />
+          )}
           <FlatList
             data={spot.properties.other_features}
             renderItem={item => renderFeature(item.item)}

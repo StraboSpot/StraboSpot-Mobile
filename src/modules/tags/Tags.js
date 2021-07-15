@@ -71,7 +71,7 @@ const Tags = () => {
           <ListItem.Title style={commonStyles.listItemTitle}>{getTagTitle(tag)}</ListItem.Title>
         </ListItem.Content>
         <ListItem.Content right>
-          <ListItem.Title>{useTags.renderSpotCount(tag)}</ListItem.Title>
+          <ListItem.Title>{useTags.renderSpotCount(tag) + ' ' + useTags.renderFeatureTagsCount(tag)}</ListItem.Title>
         </ListItem.Content>
         <ListItem.Chevron/>
       </ListItem>

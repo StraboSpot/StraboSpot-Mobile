@@ -31,6 +31,9 @@ const TagsModal = (props) => {
   const [checkedTagsTemp, setCheckedTagsTemp] = useState([]);
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const isMultipleFeaturesTaggingEnabled = useSelector(state => state.project.isMultipleFeaturesTaggingEnabled);
+  const selectedSpotFeaturesForTagging = useSelector(state => state.spot.selectedAttributes || []);
+  const selectedFeature = useSelector(state => state.spot.selectedAttributes[0]);
   const formRef = useRef(null);
 
   const checkTags = (tag) => {
@@ -115,13 +118,18 @@ const TagsModal = (props) => {
   };
 
   const renderTagItem = (tag) => {
+    let isAlreadyChecked = false;
+    if (isMultipleFeaturesTaggingEnabled) {
+      isAlreadyChecked = tag.features && tag.features[selectedSpot.properties.id] && !isEmpty(selectedSpotFeaturesForTagging)
+      && selectedSpotFeaturesForTagging.every(element => tag.features[selectedSpot.properties.id].includes(element.id));
+    }
     return (
       <ListItem
         containerStyle={commonStyles.listItem}
         key={tag.id}
         onPress={() => (modalVisible !== MODAL_KEYS.SHORTCUTS.TAG
           && modalVisible !== MODAL_KEYS.OTHER.ADD_TAGS_TO_SPOTS)
-          ? useTags.addRemoveTagFromSpot(tag)
+          ? useTags.addRemoveTag(tag, selectedSpot)
           : checkTags(tag)}
       >
         <ListItem.Content>
@@ -130,16 +138,28 @@ const TagsModal = (props) => {
         <ListItem.Content>
           <ListItem.Title style={commonStyles.listItemTitle}>{useTags.getLabel(tag.type)}</ListItem.Title>
         </ListItem.Content>
-        <ListItem.CheckBox
-          checked={(modalVisible && modalVisible !== MODAL_KEYS.SHORTCUTS.TAG
-            && modalVisible !== MODAL_KEYS.OTHER.ADD_TAGS_TO_SPOTS)
-            ? tag && tag.spots && tag.spots.includes(selectedSpot.properties.id)
-            : checkedTagsTemp.map(checkedTag => checkedTag.id).includes(tag.id)}
-          onPress={() => (modalVisible !== MODAL_KEYS.SHORTCUTS.TAG
-            && modalVisible !== MODAL_KEYS.OTHER.ADD_TAGS_TO_SPOTS)
-            ? useTags.addRemoveTagFromSpot(tag)
-            : checkTags(tag)}
-        />
+        {(!props.isFeatureLevelTagging) && (
+          <ListItem.CheckBox
+            checked={(modalVisible && modalVisible !== MODAL_KEYS.SHORTCUTS.TAG
+              && modalVisible !== MODAL_KEYS.OTHER.ADD_TAGS_TO_SPOTS)
+              ? tag && tag.spots && tag.spots.includes(selectedSpot.properties.id)
+              : checkedTagsTemp.map(checkedTag => checkedTag.id).includes(tag.id)}
+            onPress={() => (modalVisible !== MODAL_KEYS.SHORTCUTS.TAG
+              && modalVisible !== MODAL_KEYS.OTHER.ADD_TAGS_TO_SPOTS)
+              ? useTags.addRemoveTag(tag, selectedSpot)
+              : checkTags(tag)}
+          />
+        )}
+        {(props.isFeatureLevelTagging) && (
+          <ListItem.CheckBox
+            checked={!isMultipleFeaturesTaggingEnabled
+              ? tag.features && tag.features[selectedSpot.properties.id] && selectedFeature
+              && tag.features[selectedSpot.properties.id].includes(selectedFeature.id) : isAlreadyChecked
+            }
+            onPress={() => !isMultipleFeaturesTaggingEnabled ? useTags.addRemoveTag(tag, selectedSpot, props.isFeatureLevelTagging)
+              : useTags.addRemoveTag(tag, selectedSpot, props.isFeatureLevelTagging, isAlreadyChecked)}
+          />
+        )}
       </ListItem>
     );
   };
@@ -151,7 +171,7 @@ const TagsModal = (props) => {
 
   return (
     <React.Fragment>
-      {modalVisible !== MODAL_KEYS.NOTEBOOK.TAGS && (
+      {(modalVisible !== MODAL_KEYS.NOTEBOOK.TAGS && modalVisible !== MODAL_KEYS.OTHER.FEATURE_TAGS) && (
         <View style={modalStyle.textContainer}>
           <AddButton
             title={'Create New Tag'}
@@ -169,7 +189,7 @@ const TagsModal = (props) => {
           : <Text style={modalStyle.textStyle}>No Tags</Text>}
       </View>
       {renderSpotTagsList()}
-      {!isEmpty(tags) && modalVisible !== MODAL_KEYS.NOTEBOOK.TAGS && (
+      {(!isEmpty(tags) && modalVisible !== MODAL_KEYS.NOTEBOOK.TAGS && modalVisible !== MODAL_KEYS.OTHER.FEATURE_TAGS) && (
         <SaveButton
           buttonStyle={{backgroundColor: 'red'}}
           title={'Save tag(s)'}

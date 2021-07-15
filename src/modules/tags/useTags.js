@@ -4,10 +4,11 @@ import {Text, View} from 'react-native';
 import {Formik} from 'formik';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getNewId, isEmpty, truncateText} from '../../shared/Helpers';
+import {deepFindFeatureById, getNewId, isEmpty, truncateText} from '../../shared/Helpers';
 import {Form, useFormHook} from '../form';
 import {MODAL_KEYS} from '../home/home.constants';
 import {addedTagToSelectedSpot, setSelectedTag, updatedProject} from '../project/projects.slice';
+import {setSelectedAttributes} from '../spots/spots.slice';
 import {tagsStyles} from './index';
 
 const useTags = () => {
@@ -17,6 +18,9 @@ const useTags = () => {
   const projectTags = useSelector(state => state.project.project.tags || []);
   const selectedSpot = useSelector(state => state.spot.selectedSpot);
   const selectedTag = useSelector(state => state.project.selectedTag);
+  const isMultipleFeaturesTaggingEnabled = useSelector(state => state.project.isMultipleFeaturesTaggingEnabled);
+  const selectedFeaturesForTagging = useSelector(state => state.spot.selectedAttributes);
+  const spots = useSelector(state => state.spot.spots);
 
   const formRef = useRef(null);
 
@@ -46,8 +50,48 @@ const useTags = () => {
     else dispatch(addedTagToSelectedSpot(false));
   };
 
-  const addRemoveSpotFromTag = (spotId) => {
-    let selectedTagCopy = JSON.parse(JSON.stringify(selectedTag));
+  // link unlink given tag and spot feature.
+  const addRemoveSpotFeatureFromTag = (tag, feature, spotId) => {
+    const featureData = feature.id;
+    if (!tag.features) tag.features = {};
+    if (isEmpty(tag.features[spotId])) tag.features[spotId] = [featureData];
+    else {
+      let featureTagsForSpot = tag.features[spotId];
+      const index = featureTagsForSpot.findIndex(id => id === feature.id);
+      if (index === -1) featureTagsForSpot.push(featureData);
+      else featureTagsForSpot.splice(index, 1);
+    }
+    saveTag(tag);
+  };
+
+  // link unlink multiple tags and spot features.
+  const addRemoveSpotFeaturesFromTag = (tag, features, spotId, isAlreadyChecked) => {
+    if (!tag.features) tag.features = {};
+    let featureTagsForSpot = tag.features[spotId] || [];
+    features.map(feature => {
+      const index = featureTagsForSpot.findIndex(id => id === feature.id);
+      if (isAlreadyChecked) { // if checked (action is uncheck), then remove from tag from all selected features
+        if (index !== -1) featureTagsForSpot.splice(index, 1);
+      }
+      else { // if not checked (action is check), then add tag to all selected features.
+        const featureData = feature.id;
+        if (index === -1) featureTagsForSpot.push(featureData);
+      }
+    });
+    tag.features[spotId] = featureTagsForSpot;
+    saveTag(tag);
+  };
+
+  // tag modal - add remove tags (wrapper method for feature level tagging and spot level tagging).
+  const addRemoveTag = (tag, spot, isFeatureLevelTagging, isAlreadyChecked) => {
+    const spotId = spot ? spot.properties.id : selectedSpot.properties.id;
+    if (!isFeatureLevelTagging) addRemoveSpotFromTag(spotId, tag);
+    else if (!isMultipleFeaturesTaggingEnabled) addRemoveSpotFeatureFromTag(tag, selectedFeaturesForTagging[0], spotId);
+    else addRemoveSpotFeaturesFromTag(tag, selectedFeaturesForTagging, spotId, isAlreadyChecked);
+  };
+
+  const addRemoveSpotFromTag = (spotId, tag) => {
+    let selectedTagCopy = JSON.parse(JSON.stringify(tag));
     if (selectedTagCopy.spots) {
       if (selectedTagCopy.spots.includes(spotId)) {
         selectedTagCopy.spots = selectedTagCopy.spots.filter(id => spotId !== id);
@@ -67,10 +111,51 @@ const useTags = () => {
     dispatch(setSelectedTag({}));
   };
 
+  const deleteFeatureTags = (features) => {
+    if (features.length == 0) return;
+    let tagsToUpdate = [];
+    let featureIds = features.map(feature => feature.id);
+    projectTags.map(tag => {
+      let allOtherFeatureIds = [];
+      let copyTag = JSON.parse(JSON.stringify(tag));
+      if (selectedSpot && copyTag && copyTag.features
+        && copyTag.features[selectedSpot.properties.id]) {
+        allOtherFeatureIds = copyTag.features[selectedSpot.properties.id].filter(
+          featureId => !featureIds.includes(featureId));
+        copyTag.features[selectedSpot.properties.id] = allOtherFeatureIds;
+        tagsToUpdate.push(copyTag);
+      }
+    });
+    saveTag(tagsToUpdate);
+  };
+
   const filterTagsByTagType = (tags, tagType) => {
     if (isEmpty(tagType)) return tags;
     const tagsByTagsType = tags.filter(tag => tag.type.toUpperCase().startsWith(tagType.toUpperCase()));
     return tagsByTagsType;
+  };
+
+  // to display all features that are currently tagged to the provided tag
+  const getAllTaggedFeatures = (tag) => {
+    if (isEmpty(tag)) return [];
+    let allTaggedFeatures = [];
+    const spotFeatures = tag.features;
+    if (isEmpty(spotFeatures)) return [];
+    for (const [spotId, features] of Object.entries(spotFeatures)) {
+      features.forEach(feature => {
+        const featureLabel = getFeatureLabel(spotId, feature);
+        allTaggedFeatures.push({id: feature, label: featureLabel, spotId: spotId});
+      });
+    }
+    return allTaggedFeatures;
+  };
+
+  const getFeatureLabel = (spotId, featureId) => {
+    const spot = spots[spotId];
+    if (!isEmpty(spot) && !isEmpty(spot.properties)) {
+      let foundFeature = deepFindFeatureById(spot.properties, featureId);
+      return foundFeature && (foundFeature.label || foundFeature.name_of_experiment || 'Unknown Name');
+    }
   };
 
   const getLabel = (key) => {
@@ -78,14 +163,13 @@ const useTags = () => {
     return 'No Type Specified';
   };
 
-  const addRemoveTagFromSpot = (tag, spot) => {
-    if (!tag.spots) tag.spots = [];
-    const spotId = spot ? spot.properties.id : selectedSpot.properties.id;
-    const i = tag.spots.indexOf(spotId);
-    if (i === -1) tag.spots.push(spotId);
-    else tag.spots.splice(i, 1);
-    if (isEmpty(tag.spots)) delete tag.spots;
-    saveTag(tag);
+  // to display all tags at given feature.
+  const getTagsAtFeature = (spotId, featureId) => {
+    if (!spotId && !isEmpty(selectedSpot)) spotId = selectedSpot.properties.id;
+    let tagsAtFeature = projectTags.filter(
+      tag => tag.features && tag.features[spotId] && tag.features[spotId].includes(featureId));
+    if (!isEmpty(tagsAtFeature)) return tagsAtFeature;
+    else return [];
   };
 
   // Get Tags at a Spot given an Id or if no Id specified get tags at the selected Spot
@@ -99,6 +183,17 @@ const useTags = () => {
     const tagsGeologicUnit = tagsAtSpot.filter(tag => tag.type === 'geologic_unit');
     const tagsOther = tagsAtSpot.filter(tag => tag.type !== 'geologic_unit');
     return [...tagsGeologicUnit, ...tagsOther];
+  };
+
+  const renderFeatureTagsCount = (tag) => {
+    if (!isEmpty(tag.features)) {
+      let countOfFeatureTags = 0;
+      for (const [spotId, features] of Object.entries(tag.features)) {
+        countOfFeatureTags = countOfFeatureTags + features.length;
+      }
+      return `(${countOfFeatureTags})`;
+    }
+    else return '(0)';
   };
 
   const renderSpotCount = (tag) => {
@@ -165,7 +260,7 @@ const useTags = () => {
         return Promise.resolve();
       }
     }
-    catch (e) {
+ catch (e) {
       console.log('Error submitting form', e);
       return Promise.reject();
     }
@@ -186,6 +281,21 @@ const useTags = () => {
     dispatch(updatedProject({field: 'tags', value: updatedTags}));
   };
 
+  const setFeaturesSelectedForMultiTagging = (feature) => {
+    let selectedFeaturesForTaggingCopy = JSON.parse(JSON.stringify(selectedFeaturesForTagging));
+    let index = selectedFeaturesForTagging.findIndex(obj => obj.id === feature.id);
+    if (index === -1) {
+      selectedFeaturesForTaggingCopy.push(feature);
+      dispatch(setSelectedAttributes(selectedFeaturesForTaggingCopy));
+      return true;
+    }
+    else {
+      selectedFeaturesForTaggingCopy.splice(index, 1);
+      dispatch(setSelectedAttributes(selectedFeaturesForTaggingCopy));
+      return false;
+    }
+  };
+
   const tagSpotExists = (tag, spot) => {
     if (isEmpty(tag.spots)) return false;
     const i = tag.spots.indexOf(spot.properties.id);
@@ -201,18 +311,24 @@ const useTags = () => {
   return [{
     addSpotsToTags: addSpotsToTags,
     addTag: addTag,
+    addRemoveSpotFeatureFromTag: addRemoveSpotFeatureFromTag,
     addRemoveSpotFromTag: addRemoveSpotFromTag,
-    addRemoveTagFromSpot: addRemoveTagFromSpot,
+    addRemoveTag: addRemoveTag,
     deleteTag: deleteTag,
+    deleteFeatureTags: deleteFeatureTags,
     filterTagsByTagType: filterTagsByTagType,
+    getAllTaggedFeatures: getAllTaggedFeatures,
     getLabel: getLabel,
+    getTagsAtFeature: getTagsAtFeature,
     getTagsAtSpot: getTagsAtSpot,
     getTagsAtSpotGeologicUnitFirst: getTagsAtSpotGeologicUnitFirst,
+    renderFeatureTagsCount: renderFeatureTagsCount,
     renderSpotCount: renderSpotCount,
     renderTagInfo: renderTagInfo,
     renderTagForm: renderTagForm,
     saveForm: saveForm,
     saveTag: saveTag,
+    setFeaturesSelectedForMultiTagging: setFeaturesSelectedForMultiTagging,
     tagSpotExists: tagSpotExists,
     toggleContinuousTagging: toggleContinuousTagging,
   }];

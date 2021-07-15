@@ -20,7 +20,6 @@ function DataWrapper(props) {
   };
 
   const initializeDelete = (type, whatToDelete) => {
-    console.log('WHats getting deleted.. ', type, whatToDelete);
     setItemToDelete({type: type, item: whatToDelete});
     setIsDeleteConfirmModalVisible(true);
   };

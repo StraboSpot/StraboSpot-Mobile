@@ -1,4 +1,5 @@
 import CompassModal from '../compass/CompassModal';
+import DataOverview from '../external-data/DataOverview';
 import ExternalData from '../external-data/ExternalData';
 import AddFabricModal from '../fabrics/AddFabricModal';
 import FabricsOverview from '../fabrics/FabricsOverview';
@@ -141,6 +142,7 @@ export const SECONDARY_PAGES = [
     icon_src: require('../../assets/icons/Data.png'),
     icon_pressed_src: require('../../assets/icons/Data_pressed.png'),
     page_component: ExternalData,
+    overview_component: DataOverview,
   },
 ];
 

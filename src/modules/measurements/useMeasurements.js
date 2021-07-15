@@ -8,6 +8,7 @@ import {useFormHook} from '../form';
 import {setNotebookPageVisible} from '../notebook-panel/notebook.slice';
 import {PAGE_KEYS} from '../page/page.constants';
 import {editedSpotProperties, setSelectedAttributes} from '../spots/spots.slice';
+import {useTagsHook} from '../tags';
 
 const useMeasurements = () => {
   const dispatch = useDispatch();
@@ -18,6 +19,7 @@ const useMeasurements = () => {
   const activeMeasurementTemplates = useSelector(
     state => state.project.project?.templates?.activeMeasurementTemplates) || [];
 
+  const [useTags] = useTagsHook();
   const [useForm] = useFormHook();
 
   const createNewMeasurement = () => {
@@ -108,7 +110,7 @@ const useMeasurements = () => {
 
   const deleteMeasurements = (measurementsToDelete) => {
     console.log('Deleting measurements...', measurementsToDelete);
-
+    useTags.deleteFeatureTags(measurementsToDelete);
     let flattenedMeasurementsToDelete = measurementsToDelete.reduce((acc, meas) => {
       if (meas.associated_orientation) {
         const assocOrientations = meas.associated_orientation.reduce((acc1, aO) => [...acc1, aO], []);

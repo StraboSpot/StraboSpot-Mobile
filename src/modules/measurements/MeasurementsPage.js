@@ -8,12 +8,12 @@ import {isEmpty} from '../../shared/Helpers';
 import {WARNING_COLOR} from '../../shared/styles.constants';
 import FlatListItemSeparator from '../../shared/ui/FlatListItemSeparator';
 import ListEmptyText from '../../shared/ui/ListEmptyText';
+import NotebookContentTopSection from '../../shared/ui/NotebookContentTopSection';
 import SectionDivider from '../../shared/ui/SectionDivider';
 import uiStyles from '../../shared/ui/ui.styles';
 import {COMPASS_TOGGLE_BUTTONS} from '../compass/compass.constants';
 import {setCompassMeasurements, setCompassMeasurementTypes} from '../compass/compass.slice';
 import {setModalVisible} from '../home/home.slice';
-import ReturnToOverviewButton from '../page/ui/ReturnToOverviewButton';
 import {setSelectedAttributes} from '../spots/spots.slice';
 import MeasurementDetail from './MeasurementDetail';
 import MeasurementItem from './MeasurementItem';
@@ -26,7 +26,7 @@ const MeasurementsPage = (props) => {
   const spot = useSelector(state => state.spot.selectedSpot);
   const compassMeasurements = useSelector(state => state.compass.measurements);
   const selectedAttributes = useSelector(state => state.spot.selectedAttributes);
-
+  const isMultipleFeaturesTaggingEnabled = useSelector(state => state.project.isMultipleFeaturesTaggingEnabled);
   const [isDetailView, setIsDetailView] = useState(false);
   const [multiSelectMode, setMultiSelectMode] = useState();
   const [selectedFeaturesTemp, setSelectedFeaturesTemp] = useState([]);
@@ -58,7 +58,7 @@ const MeasurementsPage = (props) => {
 
   useEffect(() => {
     console.log('UE Rendered MeasurementsPage\nSpot:', spot, '\nSelectedAttributes:', selectedAttributes);
-    if (!isEmpty(selectedAttributes)) {
+    if (!isEmpty(selectedAttributes) && !isMultipleFeaturesTaggingEnabled) {
       setSelectedAttitudes(selectedAttributes);
       setIsDetailView(true);
     }
@@ -169,6 +169,7 @@ const MeasurementsPage = (props) => {
               title={'Cancel'}
               type={'clear'}
               onPress={() => onSelectingCancel()}
+              disabled={isMultipleFeaturesTaggingEnabled}
             />
           )}
           {multiSelectMode && selectedFeaturesTemp.length >= 1 && sectionType === multiSelectMode && (
@@ -177,6 +178,7 @@ const MeasurementsPage = (props) => {
               title={'Identify Selected'}
               type={'clear'}
               onPress={() => onSelectingEnd()}
+              disabled={isMultipleFeaturesTaggingEnabled}
             />
           )}
           {!multiSelectMode && (
@@ -187,18 +189,19 @@ const MeasurementsPage = (props) => {
                   title={'Add'}
                   type={'clear'}
                   onPress={() => addMeasurement(sectionType)}
+                  disabled={isMultipleFeaturesTaggingEnabled}
                 />
               )}
               <React.Fragment>
                 <Button
-                  disabled={data.length < 1}
+                  disabled={data.length < 1 || isMultipleFeaturesTaggingEnabled}
                   titleStyle={styles.measurementsSectionDividerButtonText}
                   title={'Identify All'}
                   type={'clear'}
                   onPress={() => onIdentifyAll(sectionType, data)}
                 />
                 <Button
-                  disabled={data.length < 1}
+                  disabled={data.length < 1 || isMultipleFeaturesTaggingEnabled}
                   titleStyle={styles.measurementsSectionDividerButtonText}
                   title={'Select'}
                   type={'clear'}
@@ -255,7 +258,7 @@ const MeasurementsPage = (props) => {
   const renderMeasurementsMain = () => {
     return (
       <View style={{flex: 1}}>
-        <ReturnToOverviewButton/>
+        <NotebookContentTopSection returnToOverviewAction={() => setModalVisible({modal: null})}/>
         {renderSections()}
         {selectedFeaturesTemp.length >= 1 && (
           <View>
